@@ -3,9 +3,8 @@
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
-  font-family: 'JetBrains Mono';
-  src: url('https://cdn.jsdelivr.net/gh/JetBrains/JetBrainsMono/web/woff2/JetBrainsMono-Bold-Italic.woff2') format('woff2'),
-    url('https://cdn.jsdelivr.net/gh/JetBrains/JetBrainsMono/web/woff/JetBrainsMono-Bold-Italic.woff') format('woff');
+  font-family: 'JetBrainsMono';
+  src: url('.ttf') format('truetype');
   line-height: 1.5;
   font-weight: 400;
   font-style: normal;
