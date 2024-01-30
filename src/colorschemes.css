@@ -1,0 +1,17 @@
+/* Light Theme */
+:root {
+    --tab-background-default-light: #f0f0f0;
+    --tab-border-default-light: #ccc;
+    --tab-hover-background-light: #e0e0e0;
+    --tab-selected-background-light: #AA0A0A;
+    --tab-selected-text-light: #fff;
+}
+
+/* Dark Theme */
+:root {
+    --tab-background-default-dark: #333;
+    --tab-border-default-dark: #555;
+    --tab-hover-background-dark: #444;
+    --tab-selected-background-dark: #AA0A0A;
+    --tab-selected-text-dark: #fff;
+}

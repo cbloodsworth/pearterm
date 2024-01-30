@@ -1,0 +1,46 @@
+.tab {
+    display: inline-flex;
+    overflow: hidden;
+
+    background-color: #292929;
+    padding: 0.5em;
+    padding-left: 1em;
+    width: 16em;
+    margin-right: 5px;
+    border-radius: 0.25em 0.25em 0em 0em;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+.tab:hover {
+    background-color: #363636;
+}
+
+.tab.selected {
+    background-color: #969696;
+}
+
+.tab.selected:hover {
+    background-color: #B6B6B6;
+}
+
+.tabList {
+    display: flex;
+    position: fixed;
+    top: 1em;
+    left: 1em;
+}
+
+.thumbnail {
+    width: 1.5em;
+    padding-right: 1em;
+}
+
+.closebutton {
+    margin-left: auto;
+    margin-right: 1em;
+
+    width: 0.75em;
+    height: 0.75em;
+}

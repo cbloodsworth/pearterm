@@ -1,22 +1,16 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react'
+import TabList from './components/tablist'
 
-function App() {
+import './styles/App.css'
+
+const App: React.FC = () => {
   const [count, setCount] = useState(0)
+  const tabLabels = ['Main Page', 'Projects', 'Other'];
+  const tabThumbnails = 'https://upload.wikimedia.org/wikipedia/commons/9/9e/UbuntuCoF.svg'
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
+      <TabList tabLabels={tabLabels} tabThumbnails={tabThumbnails} />
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
