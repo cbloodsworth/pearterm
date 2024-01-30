@@ -6,6 +6,7 @@
   font-family: 'JetBrainsMono';
   line-height: 1.5;
   font-weight: 400;
+  font-size: clamp(8px, 1.5vw, 18px);
   font-style: normal;
   font-display: swap;
   font-synthesis: none;
