@@ -2,7 +2,7 @@
     display: inline-flex;
     overflow: hidden;
 
-    background-color: #292929;
+    background-color: #393939;
     padding: 0.5em;
     padding-left: 1em;
     width: 16em;
@@ -14,15 +14,15 @@
 }
 
 .tab:hover {
-    background-color: #363636;
+    background-color: #292929;
 }
 
 .tab.selected {
-    background-color: #969696;
+    background-color: #060606;
 }
 
 .tab.selected:hover {
-    background-color: #B6B6B6;
+    background-color: #090909;
 }
 
 .tabList {
