@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import TabList from './components/tablist'
+import Terminal from './components/terminal'
 
 import './styles/App.css'
 
@@ -11,13 +12,16 @@ const App: React.FC = () => {
   return (
     <>
       <TabList tabLabels={tabLabels} tabThumbnails={tabThumbnails} />
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <div className="window">
+        <Terminal user={'you'} dir={'mainpage'} />
+        <div className="card">
+          <button onClick={() => setCount((count) => count + 1)}>
+            count is {count}
+          </button>
+          <p>
+            Edit <code>src/App.tsx</code> and save to test HMR
+          </p>
+        </div>
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
