@@ -1,5 +1,6 @@
 import React from 'react';
-import '../styles/terminal.css';
+
+import '../styles/view.css';
 
 interface TerminalProps {
     user: string,
@@ -8,7 +9,7 @@ interface TerminalProps {
 
 const Terminal: React.FC<TerminalProps> = ({ user, dir }) => {
     return (
-        <div>
+        <div className='terminal'>
             {user} @ portfolio → {dir} $
         </div>
     );

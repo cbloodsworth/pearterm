@@ -1,0 +1,13 @@
+.view {
+    width: 100vw;
+}
+
+.terminal {
+    display: inline-block;
+    width: 50vw;
+}
+
+.page {
+    display: inline-block;
+    width: 50vw;
+}
