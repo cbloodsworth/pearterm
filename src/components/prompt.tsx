@@ -7,9 +7,14 @@ interface PromptProps {
 }
 
 const Prompt: React.FC<PromptProps> = ({ prompt }) => {
-    if (!prompt.includes('$')) {
+    if (prompt.includes('[list.directory]')) {
+        // Special coloring if we did ls (very bad TODO CHANGE)
+        return <div style={{ color: '#6262E0' }}>{prompt.slice('[list.directory]'.length)}</div>
+    }
+    else if (!prompt.includes('$')) {
         return <div>{prompt}</div>
     }
+
 
     const user = prompt.slice(0, prompt.indexOf(':') + 1);
     const dir = prompt.slice(prompt.indexOf(':') + 1, prompt.indexOf('$'));

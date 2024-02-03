@@ -39,7 +39,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, dir, changeDir }) => {
                         case "Enter": {
                             let newOutput = "";
                             switch (input) {
-                                case "ls": newOutput += "main_page  projects  my_links"; break;
+                                case "ls": newOutput += "[list.directory]main_page  projects  my_links"; break;
                                 case "pwd": newOutput += "You're on my terminal site"; break;
                                 case "clear": {
                                     setOutput([getPrompt()]);
@@ -48,14 +48,17 @@ const Terminal: React.FC<TerminalProps> = ({ user, dir, changeDir }) => {
                                 }
                                 case "cd projects": {
                                     changeDir('Projects');
+                                    dir = 'projects' // TODO: CHANGE GOD THIS IS AWFUL
                                     break;
                                 }
                                 case "cd main_page": {
                                     changeDir('Main Page');
+                                    dir = 'main_page' // TODO: CHANGE GOD THIS IS AWFUL
                                     break;
                                 }
                                 case "cd my_links": {
                                     changeDir('My Links');
+                                    dir = 'my_links' // TODO: CHANGE GOD THIS IS AWFUL
                                     break;
                                 }
                                 default: newOutput += "Unknown command."; break;
