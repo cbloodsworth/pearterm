@@ -6,12 +6,17 @@ import '../styles/view.css';
 
 interface ViewProps {
     activeTab: string
+    setActiveTab: (label: string) => void;
 }
 
-const View: React.FC<ViewProps> = ({ activeTab }) => {
+const View: React.FC<ViewProps> = ({ activeTab, setActiveTab }) => {
     return (
         <div className='view'>
-            <Terminal user='default.user' dir={activeTab} />
+            <Terminal
+                user='default.user'
+                dir={activeTab}
+                changeDir={setActiveTab}
+            />
             <Page pageName={activeTab} />
         </div>
     );

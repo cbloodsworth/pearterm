@@ -14,6 +14,7 @@
 }
 
 .window {
+    position: absolute;
     display: inline-block;
     font-size: 0.90rem;
 
@@ -27,14 +28,23 @@
 }
 
 .window.terminal {
+    left: 1vw;
     background-color: #030303;
     border: 1px solid green;
+    white-space: pre-line;
 }
 
 .window.page {
+    right: 1vw;
     border: 1px solid blue;
 }
 
-.commandLine {
-
+.terminalInput {
+    border: none;
+    outline: none;
+    margin: 0px;
+    padding: 0px;
+    background-color: transparent;
+    caret-color: white;
+    font-size: 1rem;
 }

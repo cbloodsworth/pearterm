@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import TabList from './components/tablist'
-
 import View from './components/view'
+
 import './styles/view.css';
 
 const App: React.FC = () => {
@@ -21,7 +21,10 @@ const App: React.FC = () => {
         selectedTab={selectedTab}
         handleTabClick={handleTabClick}
       />
-      <View activeTab={selectedTab} />
+      <View
+        activeTab={selectedTab}
+        setActiveTab={setSelectedTab}
+      />
     </>
   )
 }
