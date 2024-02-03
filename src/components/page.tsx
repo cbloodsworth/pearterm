@@ -2,11 +2,15 @@ import React from 'react';
 
 import '../styles/view.css';
 
-const Page: React.FC = () => {
+interface PageProps {
+    pageName: string;
+}
+
+const Page: React.FC<PageProps> = ({ pageName }) => {
     return (
         <>
             <div className="window page">
-                Lorem ipsum dolor sit amet
+                Welcome to {pageName}!
             </div>
         </>
     );

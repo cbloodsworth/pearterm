@@ -8,11 +8,11 @@ interface ViewProps {
     activeTab: string
 }
 
-const View: React.FC<ViewProps> = ({activeTab}) => {
+const View: React.FC<ViewProps> = ({ activeTab }) => {
     return (
         <div className='view'>
-            <Terminal user='default.user' dir={activeTab}/>
-            <Page/>
+            <Terminal user='default.user' dir={activeTab} />
+            <Page pageName={activeTab} />
         </div>
     );
 };

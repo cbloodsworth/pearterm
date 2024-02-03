@@ -5,23 +5,23 @@ import View from './components/view'
 import './styles/view.css';
 
 const App: React.FC = () => {
-  const tabLabels = ['Main Page', 'Projects', 'Other'];
+  const tabLabels = ['Main Page', 'Projects', 'My Links'];
   const tabThumbnails = 'https://upload.wikimedia.org/wikipedia/commons/9/9e/UbuntuCoF.svg'
 
   const [selectedTab, setSelectedTab] = useState<string>(tabLabels[0]);
   const handleTabClick = (label: string) => {
-      setSelectedTab(label);
+    setSelectedTab(label);
   };
 
   return (
     <>
-      <TabList 
-        tabLabels={tabLabels} 
-        tabThumbnails={tabThumbnails} 
+      <TabList
+        tabLabels={tabLabels}
+        tabThumbnails={tabThumbnails}
         selectedTab={selectedTab}
         handleTabClick={handleTabClick}
       />
-      <View activeTab={selectedTab}/>
+      <View activeTab={selectedTab} />
     </>
   )
 }

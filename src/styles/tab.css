@@ -17,6 +17,10 @@
     background-color: #292929;
 }
 
+.tab:active {
+    background-color: #161616;
+}
+
 .tab.selected {
     background-color: #161616;
 }
