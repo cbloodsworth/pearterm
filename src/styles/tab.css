@@ -3,11 +3,11 @@
     overflow: hidden;
 
     background-color: #393939;
-    padding: 0.5em;
-    padding-left: 1em;
-    width: 16em;
+    padding: 0.5rem;
+    padding-left: 1rem;
+    width: 18rem;
     margin-right: 5px;
-    border-radius: 0.25em 0.25em 0em 0em;
+    border-radius: 0.25rem 0.25rem 0rem 0rem;
 
     cursor: pointer;
     user-select: none;
@@ -18,29 +18,29 @@
 }
 
 .tab.selected {
-    background-color: #060606;
+    background-color: #161616;
 }
 
-.tab.selected:hover {
-    background-color: #090909;
-}
+/* .tab.selected:hover {
+    background-color: #202020;
+} */
 
 .tabList {
     display: flex;
     position: fixed;
-    top: 1em;
-    left: 1em;
+    top: 1rem;
+    left: 1rem;
 }
 
 .thumbnail {
-    width: 1.5em;
-    padding-right: 1em;
+    width: 1.5rem;
+    padding-right: 1rem;
 }
 
 .closebutton {
     margin-left: auto;
-    margin-right: 1em;
+    margin-right: 1rem;
 
-    width: 0.75em;
-    height: 0.75em;
+    width: 0.75rem;
+    height: 0.75rem;
 }

@@ -3,10 +3,12 @@
   color: rgba(255, 255, 255, 0.87);
   background-color: #4f4f4f;
 
+  overflow: hidden;
+
   font-family: 'JetBrainsMono';
   line-height: 1.5;
   font-weight: 400;
-  font-size: clamp(8px, 1.5vw, 18px);
+  font-size: clamp(10px, 1.25vw, 2vw);
   font-style: normal;
   font-display: swap;
   font-synthesis: none;

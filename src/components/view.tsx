@@ -4,10 +4,14 @@ import Page from './page'
 
 import '../styles/view.css';
 
-const View: React.FC = () => {
+interface ViewProps {
+    activeTab: string
+}
+
+const View: React.FC<ViewProps> = ({activeTab}) => {
     return (
         <div className='view'>
-            <Terminal user='default.user' dir='~'/>
+            <Terminal user='default.user' dir={activeTab}/>
             <Page/>
         </div>
     );

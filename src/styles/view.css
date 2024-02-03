@@ -1,13 +1,40 @@
 .view {
+    position: absolute;
+    display: inline-flexbox;
+    top: 3.5rem;
+    height: 95vh;
     width: 100vw;
+
+    box-sizing: border-box;
+    border-radius: 0.25rem;
+
+    background-color: #161616;
+
+    padding: 0.5vw;
 }
 
-.terminal {
+.window {
     display: inline-block;
-    width: 50vw;
+    font-size: 0.90rem;
+
+    height: 80vh;
+    width: 45vw;
+
+    margin: 1vw;
+    padding: 1vw;
+
+    border-radius: 0.25rem;
 }
 
-.page {
-    display: inline-block;
-    width: 50vw;
+.window.terminal {
+    background-color: #030303;
+    border: 1px solid green;
+}
+
+.window.page {
+    border: 1px solid blue;
+}
+
+.commandLine {
+
 }

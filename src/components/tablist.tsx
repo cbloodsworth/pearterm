@@ -1,17 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Tab from './tab';
 
 interface TabListProps {
     tabLabels: string[];
     tabThumbnails: string;
+    selectedTab: string;
+    handleTabClick: (label: string) => void;
 }
 
-const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails }) => {
-    const [selectedTab, setSelectedTab] = useState<string | null>(tabLabels[0]);
-
-    const handleTabClick = (label: string) => {
-        setSelectedTab(label);
-    };
+const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, selectedTab, handleTabClick }) => {
 
     return (
         <div className='tabList'>

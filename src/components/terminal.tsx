@@ -9,8 +9,8 @@ interface TerminalProps {
 
 const Terminal: React.FC<TerminalProps> = ({ user, dir }) => {
     return (
-        <div className='terminal'>
-            {user} @ portfolio → {dir} $
+        <div className='window terminal'>
+            {user}@portfolio: ~/{dir.toLowerCase().replace(' ','_')} $
         </div>
     );
 };
