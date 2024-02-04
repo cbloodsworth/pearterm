@@ -39,6 +39,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, dir, changeDir }) => {
                         case "Enter": {
                             let newOutput = "";
                             switch (input) {
+                                case "": break;
                                 case "ls": newOutput += "[list.directory]main_page  projects  my_links"; break;
                                 case "pwd": newOutput += "You're on my terminal site"; break;
                                 case "clear": {
@@ -61,28 +62,43 @@ const Terminal: React.FC<TerminalProps> = ({ user, dir, changeDir }) => {
                                     dir = 'my_links' // TODO: CHANGE GOD THIS IS AWFUL
                                     break;
                                 }
-                                default: newOutput += "Unknown command."; break;
+                                default: newOutput += `Unknown command: ${input}`; break;
                             }
                             // add the user's input to the command history
                             output[output.length - 1] += input;
-                            setOutput(
-                                [
-                                    ...output,
-                                    newOutput,
-                                    getPrompt()
-                                ]
-                            );
 
                             // to prevent overflow
-                            if (output.length >= 20) {
-                                setOutput(
-                                    [
-                                        ...output.slice(2),
-                                        newOutput + '\n',
-                                        getPrompt()
-                                    ]
-                                );
+                            if (newOutput === "") {
+                                if (output.length >= 20) {
+                                    setOutput([
+                                        ...output.slice(1),
+                                        "\n" + getPrompt()
+                                    ])
+                                }
+                                else {
+                                    setOutput([
+                                        ...output,
+                                        "\n" + getPrompt()
+                                    ])
+                                }
                             }
+                            else {
+                                if (output.length >= 20) {
+                                    setOutput([
+                                        ...output.slice(2),
+                                        newOutput,
+                                        getPrompt()
+                                    ])
+                                }
+                                else {
+                                    setOutput([
+                                        ...output,
+                                        newOutput,
+                                        getPrompt()
+                                    ])
+                                }
+                            }
+
                             setInput("");
                             break;
                         }

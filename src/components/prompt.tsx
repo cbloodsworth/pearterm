@@ -15,14 +15,15 @@ const Prompt: React.FC<PromptProps> = ({ prompt }) => {
         return <div>{prompt}</div>
     }
 
-
-    const user = prompt.slice(0, prompt.indexOf(':') + 1);
-    const dir = prompt.slice(prompt.indexOf(':') + 1, prompt.indexOf('$'));
-    const cmd = prompt.slice(prompt.indexOf('$'))
+    let colonIndex = prompt.indexOf(':');
+    let shellIndex = prompt.indexOf('$');
+    const user = prompt.slice(0, colonIndex + 1);
+    const dir = prompt.slice(colonIndex + 2, shellIndex);
+    const cmd = prompt.slice(shellIndex)
     return (
         <>
             <span style={{ color: '#2DE02D' }}> {user} </span>
-            <span style={{ color: '#6262E0' }}> {dir} </span>
+            <span style={{ color: '#6262E0' }}> ~/{dir} </span>
             <span>{cmd}</span>
         </>
     );
