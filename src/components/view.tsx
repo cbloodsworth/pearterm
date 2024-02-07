@@ -5,19 +5,19 @@ import Page from './page'
 import '../styles/view.css';
 
 interface ViewProps {
-    activeTab: string
-    setActiveTab: (label: string) => void;
+    pwd: string
+    changeDir: (label: string) => void;
 }
 
-const View: React.FC<ViewProps> = ({ activeTab, setActiveTab }) => {
+const View: React.FC<ViewProps> = ({ pwd, changeDir }) => {
     return (
         <div className='view'>
             <Terminal
                 user='default.user'
-                dir={activeTab}
-                changeDir={setActiveTab}
+                pwd={pwd}
+                changeDir={changeDir}
             />
-            <Page pageName={activeTab} />
+            <Page pageName={pwd} />
         </div>
     );
 };

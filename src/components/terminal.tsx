@@ -6,28 +6,40 @@ import '../styles/view.css';
 
 interface TerminalProps {
     user: string,
-    dir: string,
+    pwd: string,
     changeDir: (label: string) => void;
 }
 
+interface HistoryLine {
+    server: string;
+    user: string;
+    pwd: string;
+    content: string;
+}
 
-const Terminal: React.FC<TerminalProps> = ({ user, dir, changeDir }) => {
-    const getPrompt = (): string => { return `${user}@portfolio: ${dir.toLowerCase().replace(' ', '_')} $ ` }
+const server = 'portfolio'
 
+const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir }) => {
     const [input, setInput] = useState("");
-    const [output, setOutput] = useState<string[]>([getPrompt()]);
+    const [output, setOutput] = useState<HistoryLine[]>([]);
     const inputRef = useRef();
-
 
     useEffect(() => { inputRef.current.focus(); }, [])
 
     return (
         <div className='window terminal' onClick={() => { inputRef.current.focus(); }}>
             {output.map((line) => (
-                <span>
-                    <Prompt prompt={line} />
-                </span>
-            ))}
+                <>
+                    <Prompt server={server} user={line.user} pwd={line.pwd} />
+                    <span>{line.content}</span>
+                </>
+                ))}
+            
+            <Prompt
+                server={server}
+                user={user}
+                pwd={pwd}
+            />
             <input
                 ref={inputRef}
                 type='text'
@@ -49,17 +61,17 @@ const Terminal: React.FC<TerminalProps> = ({ user, dir, changeDir }) => {
                                 }
                                 case "cd projects": {
                                     changeDir('Projects');
-                                    dir = 'projects' // TODO: CHANGE GOD THIS IS AWFUL
+                                    pwd = 'projects' // TODO: CHANGE GOD THIS IS AWFUL
                                     break;
                                 }
                                 case "cd main_page": {
                                     changeDir('Main Page');
-                                    dir = 'main_page' // TODO: CHANGE GOD THIS IS AWFUL
+                                    pwd = 'main_page' // TODO: CHANGE GOD THIS IS AWFUL
                                     break;
                                 }
                                 case "cd my_links": {
                                     changeDir('My Links');
-                                    dir = 'my_links' // TODO: CHANGE GOD THIS IS AWFUL
+                                    pwd = 'my_links' // TODO: CHANGE GOD THIS IS AWFUL
                                     break;
                                 }
                                 default: newOutput += `Unknown command: ${input}`; break;
@@ -67,36 +79,18 @@ const Terminal: React.FC<TerminalProps> = ({ user, dir, changeDir }) => {
                             // add the user's input to the command history
                             output[output.length - 1] += input;
 
-                            // to prevent overflow
                             if (newOutput === "") {
-                                if (output.length >= 20) {
-                                    setOutput([
-                                        ...output.slice(1),
-                                        "\n" + getPrompt()
-                                    ])
-                                }
-                                else {
-                                    setOutput([
-                                        ...output,
-                                        "\n" + getPrompt()
-                                    ])
-                                }
+                                setOutput([
+                                    ...output,
+                                    "\n" + getPrompt()
+                                ])
                             }
                             else {
-                                if (output.length >= 20) {
-                                    setOutput([
-                                        ...output.slice(2),
-                                        newOutput,
-                                        getPrompt()
-                                    ])
-                                }
-                                else {
-                                    setOutput([
-                                        ...output,
-                                        newOutput,
-                                        getPrompt()
-                                    ])
-                                }
+                                setOutput([
+                                    ...output,
+                                    newOutput,
+                                    getPrompt()
+                                ])
                             }
 
                             setInput("");

@@ -2,28 +2,33 @@ import React, { useState } from 'react'
 import TabList from './components/tablist'
 import View from './components/view'
 
+import FileSystemNode from './system/filetree';
+
 import './styles/view.css';
 
 const App: React.FC = () => {
-  const tabLabels = ['Main Page', 'Projects', 'My Links'];
+  const tabDirs = ['Main Page', 'Projects', 'My Links'];
   const tabThumbnails = 'https://upload.wikimedia.org/wikipedia/commons/9/9e/UbuntuCoF.svg'
 
-  const [selectedTab, setSelectedTab] = useState<string>(tabLabels[0]);
-  const handleTabClick = (label: string) => {
-    setSelectedTab(label);
-  };
+  const [pwd, changeDir] = useState<string>(tabDirs[0]);
+
+  const [rootFS, modifyFS] = useState<FileSystemNode>( (): FileSystemNode => {
+    let root = new FileSystemNode(null, '~', true)
+    tabDirs.forEach((dir_name) => {root.addDirectory(dir_name)})
+    return root;
+  })
 
   return (
     <>
       <TabList
-        tabLabels={tabLabels}
+        tabLabels={tabDirs}
         tabThumbnails={tabThumbnails}
-        selectedTab={selectedTab}
-        handleTabClick={handleTabClick}
+        pwd={pwd}
+        changeDir={changeDir}
       />
       <View
-        activeTab={selectedTab}
-        setActiveTab={setSelectedTab}
+        pwd={pwd}
+        changeDir={changeDir}
       />
     </>
   )

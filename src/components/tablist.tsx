@@ -4,12 +4,11 @@ import Tab from './tab';
 interface TabListProps {
     tabLabels: string[];
     tabThumbnails: string;
-    selectedTab: string;
-    handleTabClick: (label: string) => void;
+    pwd: string;
+    changeDir: (label: string) => void;
 }
 
-const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, selectedTab, handleTabClick }) => {
-
+const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, pwd, changeDir }) => {
     return (
         <div className='tabList'>
             {tabLabels.map((label) => (
@@ -17,8 +16,8 @@ const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, selectedTab
                     key={label}
                     label={label}
                     thumbnail={tabThumbnails}
-                    selected={label === selectedTab}
-                    onClick={() => handleTabClick(label)}
+                    isSelected={label === pwd}
+                    onClick={() => changeDir(label)}
                 />
             ))}
         </div>

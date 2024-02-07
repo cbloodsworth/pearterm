@@ -4,14 +4,14 @@ import '../styles/tab.css';
 
 interface TabProps {
     label: string;
-    selected: boolean;
+    isSelected: boolean;
     thumbnail: string; // source to image
     onClick: () => void;
 }
 
-const Tab: React.FC<TabProps> = ({ label, thumbnail, selected, onClick }) => {
+const Tab: React.FC<TabProps> = ({ label, thumbnail, isSelected, onClick }) => {
     return (
-        <div className={`tab ${selected ? 'selected' : ''}`} onClick={onClick}>
+        <div className={`tab ${isSelected ? 'selected' : ''}`} onClick={onClick}>
             <img className='thumbnail' src={thumbnail} />
             {label}
             <div className='closebutton'>✖</div>
