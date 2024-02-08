@@ -7,7 +7,7 @@ import FileSystemNode from './system/filetree';
 import './styles/view.css';
 
 const App: React.FC = () => {
-  const tabDirs = ['Main Page', 'Projects', 'My Links'];
+  const tabDirs = ['main', 'projects', 'links'];
   const tabThumbnails = 'https://upload.wikimedia.org/wikipedia/commons/9/9e/UbuntuCoF.svg'
 
   const [pwd, changeDir] = useState<string>(tabDirs[0]);

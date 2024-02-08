@@ -8,7 +8,7 @@ interface PromptProps {
     pwd: string;
 }
 
-const Prompt: React.FC<PromptProps> = ({ server, user, pwd }) => {
+const Prompt: React.FC<PromptProps> = ({ server, user, pwd}) => {
     return (
         <>
             <span style={{ color: '#2DE02D' }}> {user}@{server} </span>

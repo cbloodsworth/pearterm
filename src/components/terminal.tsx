@@ -15,6 +15,7 @@ interface HistoryLine {
     user: string;
     pwd: string;
     content: string;
+    output_only?: boolean;
 }
 
 const server = 'portfolio'
@@ -30,8 +31,9 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir }) => {
         <div className='window terminal' onClick={() => { inputRef.current.focus(); }}>
             {output.map((line) => (
                 <>
-                    <Prompt server={server} user={line.user} pwd={line.pwd} />
+                    { (line.output_only) ? <></> : <Prompt server={server} user={line.user} pwd={line.pwd} />}
                     <span>{line.content}</span>
+                    <div></div>
                 </>
                 ))}
             
@@ -49,57 +51,54 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir }) => {
                 onKeyDown={event => {
                     switch (event.key) {
                         case "Enter": {
-                            let newOutput = "";
+                            let newOutput: HistoryLine = {server, user, pwd, content: "", output_only: true};
                             switch (input) {
-                                case "": break;
-                                case "ls": newOutput += "[list.directory]main_page  projects  my_links"; break;
-                                case "pwd": newOutput += "You're on my terminal site"; break;
+                                case "": {
+                                    break;
+                                }
+                                case "ls": {
+                                    newOutput.content += "[list.directory]main_page  projects  my_links";
+                                    break;
+                                }
+                                case "pwd": {
+                                    newOutput.content += pwd; 
+                                    break;
+                                }
                                 case "clear": {
-                                    setOutput([getPrompt()]);
+                                    setOutput([]);
                                     setInput("");
                                     break;
                                 }
                                 case "cd projects": {
-                                    changeDir('Projects');
-                                    pwd = 'projects' // TODO: CHANGE GOD THIS IS AWFUL
+                                    changeDir('projects');
                                     break;
                                 }
-                                case "cd main_page": {
-                                    changeDir('Main Page');
-                                    pwd = 'main_page' // TODO: CHANGE GOD THIS IS AWFUL
+                                case "cd main": {
+                                    changeDir('main');
                                     break;
                                 }
-                                case "cd my_links": {
-                                    changeDir('My Links');
-                                    pwd = 'my_links' // TODO: CHANGE GOD THIS IS AWFUL
+                                case "cd links": {
+                                    changeDir('links');
                                     break;
                                 }
-                                default: newOutput += `Unknown command: ${input}`; break;
+                                default: {
+                                    newOutput.content += `Unknown command: ${input}`; 
+                                    break;
+                                }
                             }
                             // add the user's input to the command history
-                            output[output.length - 1] += input;
-
-                            if (newOutput === "") {
-                                setOutput([
-                                    ...output,
-                                    "\n" + getPrompt()
-                                ])
-                            }
-                            else {
-                                setOutput([
-                                    ...output,
-                                    newOutput,
-                                    getPrompt()
-                                ])
-                            }
-
+                            setOutput([
+                                ...output,
+                                {server, user, pwd, content: input, output_only: false},
+                                newOutput
+                            ])
                             setInput("");
                             break;
                         }
                         case "l": {
                             if (event.ctrlKey) {
                                 event.preventDefault();
-                                setOutput([getPrompt()]);
+                                setOutput([]);
                                 setInput("");
                             }
                             break;
