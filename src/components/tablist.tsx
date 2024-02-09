@@ -1,11 +1,13 @@
 import React from 'react';
 import Tab from './tab';
 
+import FileSystemNode from '../system/filetree';
+
 interface TabListProps {
     tabLabels: string[];
     tabThumbnails: string;
-    pwd: string;
-    changeDir: (label: string) => void;
+    pwd: FileSystemNode;
+    changeDir: (dir: FileSystemNode) => void;
 }
 
 const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, pwd, changeDir }) => {
@@ -16,8 +18,8 @@ const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, pwd, change
                     key={label}
                     label={label}
                     thumbnail={tabThumbnails}
-                    isSelected={label === pwd}
-                    onClick={() => changeDir(label)}
+                    isSelected={label === pwd.filename}
+                    onClick={() => changeDir(pwd)}
                 />
             ))}
         </div>

@@ -4,43 +4,46 @@ import Prompt from './prompt'
 
 import '../styles/view.css';
 
+import FileSystemNode from '../system/filetree';
+
 interface TerminalProps {
-    user: string,
-    pwd: string,
-    changeDir: (label: string) => void;
+    user: string;
+    pwd: FileSystemNode;
+    changeDir: (dir: FileSystemNode) => void;
+    rootFS: FileSystemNode;
 }
 
 interface HistoryLine {
     server: string;
     user: string;
-    pwd: string;
+    pwd_str: string;
     content: string;
     output_only?: boolean;
 }
 
 const server = 'portfolio'
 
-const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir }) => {
+const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => {
     const [input, setInput] = useState("");
     const [output, setOutput] = useState<HistoryLine[]>([]);
     const inputRef = useRef();
 
-    useEffect(() => { inputRef.current.focus(); }, [])
+    useEffect(() => { inputRef.current.focus(); }, []);
 
     return (
         <div className='window terminal' onClick={() => { inputRef.current.focus(); }}>
             {output.map((line) => (
                 <>
-                    { (line.output_only) ? <></> : <Prompt server={server} user={line.user} pwd={line.pwd} />}
+                    { (line.output_only) ? <></> : <Prompt server={server} user={line.user} pwd={line.pwd_str} />}
                     <span>{line.content}</span>
                     <div></div>
                 </>
-                ))}
+            ))}
             
             <Prompt
                 server={server}
                 user={user}
-                pwd={pwd}
+                pwd={pwd.filename}
             />
             <input
                 ref={inputRef}
@@ -51,13 +54,13 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir }) => {
                 onKeyDown={event => {
                     switch (event.key) {
                         case "Enter": {
-                            let newOutput: HistoryLine = {server, user, pwd, content: "", output_only: true};
+                            let newOutput: HistoryLine = {server, user, pwd_str: pwd.filename, content: "", output_only: true};
                             switch (input) {
                                 case "": {
                                     break;
                                 }
                                 case "ls": {
-                                    newOutput.content += "[list.directory]main_page  projects  my_links";
+                                    newOutput.content += pwd.getChildrenFilenames();
                                     break;
                                 }
                                 case "pwd": {
@@ -69,16 +72,36 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir }) => {
                                     setInput("");
                                     break;
                                 }
-                                case "cd projects": {
-                                    changeDir('projects');
-                                    break;
-                                }
-                                case "cd main": {
-                                    changeDir('main');
-                                    break;
-                                }
-                                case "cd links": {
-                                    changeDir('links');
+                                case input.match(/^cd[ \r\n]*/)?.input: {
+                                    let parsed = input.split(' ');
+
+                                    /** Edge cases */
+                                    if (parsed.length > 2 || parsed.length < 1) {
+                                        newOutput.content += "Please only provide one directory";
+                                        break;
+                                    }
+                                    /** cd on its own should redirect to root */
+                                    if (parsed.length == 1) {
+                                        changeDir(rootFS);
+                                        break;
+                                    }
+
+                                    else {
+                                        let dir = parsed[1];
+                                        if (dir == "..") {
+                                            changeDir(pwd.getParent())
+                                            break;
+                                        }
+
+                                        let node = rootFS.getChild(dir);
+                                        if (node == undefined) {
+                                            newOutput.content += "No such directory found";
+                                        }
+                                        else {
+                                            changeDir(node);
+                                        }
+                                    }
+
                                     break;
                                 }
                                 default: {
@@ -89,7 +112,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir }) => {
                             // add the user's input to the command history
                             setOutput([
                                 ...output,
-                                {server, user, pwd, content: input, output_only: false},
+                                {server, user, pwd_str: pwd.filename, content: input, output_only: false},
                                 newOutput
                             ])
                             setInput("");

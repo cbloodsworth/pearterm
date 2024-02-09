@@ -30,6 +30,15 @@ class FileSystemNode {
         return this.children.map((child) => child.getFilename())
     }
 
+    getParent() {
+        return (this.parent) ? this.parent : this;
+    }
+
+    getChild(filename: string): FileSystemNode | undefined {
+        let node = this.children.find((child) => child.getFilename() === filename)
+        return node;
+    }
+
     /** Adds a file to the directory's children list, only if it's a directory */
     addFile(filename: string, content='') {
         this.addItem(filename, false, content);

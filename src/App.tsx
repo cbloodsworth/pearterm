@@ -10,13 +10,17 @@ const App: React.FC = () => {
   const tabDirs = ['main', 'projects', 'links'];
   const tabThumbnails = 'https://upload.wikimedia.org/wikipedia/commons/9/9e/UbuntuCoF.svg'
 
-  const [pwd, changeDir] = useState<string>(tabDirs[0]);
-
-  const [rootFS, modifyFS] = useState<FileSystemNode>( (): FileSystemNode => {
-    let root = new FileSystemNode(null, '~', true)
+  /** Initialize the file system tree, with '~' as the root */
+  const [rootFS, modifyFS] = useState<FileSystemNode>((): FileSystemNode => {
+    const root = new FileSystemNode(null, '~', true)
     tabDirs.forEach((dir_name) => {root.addDirectory(dir_name)})
     return root;
   })
+
+  /** TODO: Fix this down the line to not just choose the first in the array,
+   *          it should be chosen off some other criteria (name === "main"?)
+   */
+  const [pwd, changeDir] = useState<FileSystemNode>(rootFS.children[0]);
 
   return (
     <>
@@ -29,6 +33,7 @@ const App: React.FC = () => {
       <View
         pwd={pwd}
         changeDir={changeDir}
+        rootFS={rootFS}
       />
     </>
   )
