@@ -2,7 +2,11 @@ import { CommandName, Command, command_map } from './commands'
 
 
 const get_error_command = (error: string): Command => {
-    return { name:`Syntax Error: ${error}`, flags:[], parameters: [] }
+    return { name:`Syntax Error: ${error}`, flags:[], parameters: [] };
+}
+
+const get_empty_command = (): Command => {
+    return { name:"", flags:[], parameters:[] };
 }
 
 const isFlag = (raw_token: string) => {
@@ -86,14 +90,14 @@ export class Parser {
         return true;
     }
 
-    /* We want any command to be in the format <command> [flags] [parameter] */
     parse(): Command {
         /** Verifying command */
+        if (this.tokens[0].content == "") return get_empty_command();
         if (!this.match(TokenKind.COMMAND)) return get_error_command("Unknown command.");
 
         let cmd_name = this.tokens[0].content;  // Gathered command name here
         let template = command_map.get(cmd_name);
-        if (template == undefined) return get_error_command("Unkown command.");
+        if (template == undefined) return get_error_command("Unknown command.");
 
         /** Verifying flags */
         let cmd_flags = []
@@ -105,7 +109,7 @@ export class Parser {
 
             // Note that this is string matching, not match in the context of parsing.
             // We are matching flag with a regex string of allowed flags (ex. "mn" allows -m and -n)
-            if (template.allowed_flags.indexOf(flag) == -1) { 
+            if (!(template.allowed_flags.includes(flag))) {
                 return get_error_command("Unexpected flag.");
             }
 
@@ -117,7 +121,7 @@ export class Parser {
         while (this.match(TokenKind.PARAMETER)) { 
             cmd_params.push(this.prev().content)
         }
-        if (!(cmd_params.length in template.params_expected)) {
+        if (!(template.params_expected.includes(cmd_params.length))) {
             return get_error_command(`Unexpected number of parameters: ${cmd_params.length}. Expected ${template.params_expected} parameters.`);
         }
 

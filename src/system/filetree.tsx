@@ -35,8 +35,7 @@ class FileSystemNode {
     }
 
     getChild(filename: string): FileSystemNode | undefined {
-        let node = this.children.find((child) => child.getFilename() === filename)
-        return node;
+        return this.children.find((child) => child.getFilename() === filename)
     }
 
     /** Adds a file to the directory's children list, only if it's a directory */
@@ -55,6 +54,28 @@ class FileSystemNode {
             throw Error('Can only add files to directories');
         }
         this.children.push(new FileSystemNode(this, filename, isDirectory, content))
+    }
+
+    /** Removes single file from filesystem */
+    removeFile(filename: string) {
+        if (this.isDirectory) {
+            throw Error('Cannot remove directories');
+        }
+    }
+
+    /** Recursively removes entire directory and all subcontents */
+    removeDirectory(filename: string) {
+        const to_remove = this.getChild(filename);
+        if (to_remove == undefined) { throw Error('Could not find child with given name.') }
+        if (!to_remove.isDirectory) { throw Error('Expected to remove a directory, got a file.'); }
+
+        const remove_index = this.children.indexOf(to_remove);
+        this.children.splice(remove_index, 1);
+    }
+
+    /** Recursively removes entire directory and all subcontents */
+    removeDirectoryRecursive(filename: string) {
+
     }
 }
 
