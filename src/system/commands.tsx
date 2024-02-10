@@ -1,4 +1,4 @@
-/* Commands, used as the start of the input string */
+/** Commands, used as the start of the input string */
 export enum CommandName {
     ls = 'ls',
     pwd = 'pwd',
@@ -24,6 +24,7 @@ export enum CommandName {
  *          [0,1]: 0 or 1 parameters allowed
  *          [0,4]: 0 *or* 4 parameters allowed (note: this is not a range!)
  */
+
 export interface Command {
     name: string;
     flags: string[];

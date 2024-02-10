@@ -1,4 +1,9 @@
-import { CommandName, command_map } from './commands'
+import { CommandName, Command, command_map } from './commands'
+
+
+const get_error_command = (error: string): Command => {
+    return { name:`Syntax Error: ${error}`, flags:[], parameters: [] }
+}
 
 const isFlag = (raw_token: string) => {
     return raw_token.length >= 2 && raw_token[0] === '-';
@@ -56,7 +61,7 @@ export class Parser {
     }
 
     err(token: Token, expected: TokenKind) {
-        return `Syntax error at ${token}, expected ${expected}`
+        return `Syntax Error at ${token}, expected ${expected}`
     }
 
     prev(): Token {
@@ -72,7 +77,7 @@ export class Parser {
         return this.tokens[this.current + 1]
     }
 
-    match(kind: TokenKind) {
+    private match(kind: TokenKind) {
         // checks if the token is of the expected kind
         if (kind != this.tokens[this.current].kind) return false;
 
@@ -82,34 +87,47 @@ export class Parser {
     }
 
     /* We want any command to be in the format <command> [flags] [parameter] */
-    validate(): boolean {
+    parse(): Command {
         /** Verifying command */
-        if (!this.match(TokenKind.COMMAND)) return false;
+        if (!this.match(TokenKind.COMMAND)) return get_error_command("Unknown command.");
 
-        let template = command_map.get(this.tokens[0].content);
-        if (template == undefined) return false;
+        let cmd_name = this.tokens[0].content;  // Gathered command name here
+        let template = command_map.get(cmd_name);
+        if (template == undefined) return get_error_command("Unkown command.");
 
         /** Verifying flags */
+        let cmd_flags = []
         while (this.match(TokenKind.FLAG)) {
             let flag: string = this.prev().content;
-            if (!isFlag(flag)) return false;  // can never be too safe
+            if (!isFlag(flag)) return get_error_command("Unexpected flag.");  // can never be too safe
+
+            flag = flag.substring(flag.search(/[a-z]/));
 
             // Note that this is string matching, not match in the context of parsing.
             // We are matching flag with a regex string of allowed flags (ex. "mn" allows -m and -n)
-            if (!flag.match(template.allowed_flags)) { return false; }
+            if (template.allowed_flags.indexOf(flag) == -1) { 
+                return get_error_command("Unexpected flag.");
+            }
+
+            cmd_flags.push(flag);  // Gathering command flags here
         }
 
         /** Verifying parameters */
-        let param_count = 0
+        let cmd_params = []
         while (this.match(TokenKind.PARAMETER)) { 
-            param_count++; 
+            cmd_params.push(this.prev().content)
         }
-        if (!(param_count in template.params_expected)) {
-            return false;
+        if (!(cmd_params.length in template.params_expected)) {
+            return get_error_command(`Unexpected number of parameters: ${cmd_params.length}. Expected ${template.params_expected} parameters.`);
         }
 
         /** Verifying end of file as we expect */
-        return this.match(TokenKind.EOF);
+        if (this.match(TokenKind.EOF)) {
+            return { name: cmd_name, flags: cmd_flags, parameters: cmd_params };
+        }
+        else {
+            return get_error_command("Unexpected token placement. (Misplaced flag?)");
+        }
     }
 }
 

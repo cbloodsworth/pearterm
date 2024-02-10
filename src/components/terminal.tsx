@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 
 import Prompt from './prompt'
 import { Parser, Lexer, Token, TokenKind } from "../system/parser"
+import { CommandName } from "../system/commands"
 
 import '../styles/view.css';
 
@@ -38,24 +39,32 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
             return "";
         }
 
-        let command_token = tokens[0]
-
-        let valid = new Parser(tokens).validate()
-        if (!valid) {
-            return `Unexpected usage of ${command_token.content}.`
+        let command = new Parser(tokens).parse()
+        
+        // Checking for syntax errors. Errored command parses always start with "SyntaxError"
+        if (command.name.startsWith("Syntax Error:")) {
+            return command.name;
         }
 
-        switch (command_token.content) {
+        switch (command.name) {
             case (CommandName.ls): {
-                let allFlag = tokens.
-                pwd.getChildrenFilenames().filter((filename) => (filename.startsWith('.')))
+                let filenames = pwd.getChildrenFilenames();
+                
+                // If we don't have -a flag, we want to get rid of hidden directories
+                if (command.flags.indexOf("a") == -1) {
+                    filenames = pwd.getChildrenFilenames().filter((filename) => filename[0] != '.');
+                }
+                
+                return filenames.toString();
             }
             case (CommandName.pwd): {
 
                 break;
             }
             case (CommandName.cd): {
-
+                if (command.parameters.length == 0) {
+                    changeDir(rootFS);
+                }
                 break;
             }
             case (CommandName.clear): {
@@ -107,10 +116,6 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                             ])
                             setInput("");
                             break;
-
-                            switch (input) {
-                            }
-                            // add the user's input to the command history
                         }
                         case "l": {
                             if (event.ctrlKey) {
