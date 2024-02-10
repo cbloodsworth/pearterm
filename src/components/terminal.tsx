@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 import Prompt from './prompt'
+import { Parser, Lexer, Token, TokenKind } from "../system/parser"
 
 import '../styles/view.css';
 
@@ -13,7 +14,7 @@ interface TerminalProps {
     rootFS: FileSystemNode;
 }
 
-interface HistoryLine {
+interface Line {
     server: string;
     user: string;
     pwd_str: string;
@@ -25,10 +26,49 @@ const server = 'portfolio'
 
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => {
     const [input, setInput] = useState("");
-    const [output, setOutput] = useState<HistoryLine[]>([]);
+    const [output, setOutput] = useState<Line[]>([]);
     const inputRef = useRef();
 
     useEffect(() => { inputRef.current.focus(); }, []);
+
+
+    /** Has side effects. Validates and evaluates command given current context, and returns output. */
+    const evaluate_command = (tokens: Token[]): string => {
+        if (tokens.length == 0) {
+            return "";
+        }
+
+        let command_token = tokens[0]
+
+        let valid = new Parser(tokens).validate()
+        if (!valid) {
+            return `Unexpected usage of ${command_token.content}.`
+        }
+
+        switch (command_token.content) {
+            case (CommandName.ls): {
+                let allFlag = tokens.
+                pwd.getChildrenFilenames().filter((filename) => (filename.startsWith('.')))
+            }
+            case (CommandName.pwd): {
+
+                break;
+            }
+            case (CommandName.cd): {
+
+                break;
+            }
+            case (CommandName.clear): {
+
+                break;
+            }
+
+            default: {
+
+            }
+        }
+        return "";
+    }
 
     return (
         <div className='window terminal' onClick={() => { inputRef.current.focus(); }}>
@@ -54,69 +94,23 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                 onKeyDown={event => {
                     switch (event.key) {
                         case "Enter": {
-                            let newOutput: HistoryLine = {server, user, pwd_str: pwd.filename, content: "", output_only: true};
-                            switch (input) {
-                                case "": {
-                                    break;
-                                }
-                                case "ls": {
-                                    newOutput.content += pwd.getChildrenFilenames();
-                                    break;
-                                }
-                                case "pwd": {
-                                    newOutput.content += pwd; 
-                                    break;
-                                }
-                                case "clear": {
-                                    setOutput([]);
-                                    setInput("");
-                                    break;
-                                }
-                                case input.match(/^cd[ \r\n]*/)?.input: {
-                                    let parsed = input.split(' ');
+                            let inputLine: Line = {server, user, pwd_str: pwd.filename, content: input, output_only: false}
+                            let newOutput: Line = {server, user, pwd_str: pwd.filename, content: "", output_only: true};
 
-                                    /** Edge cases */
-                                    if (parsed.length > 2 || parsed.length < 1) {
-                                        newOutput.content += "Please only provide one directory";
-                                        break;
-                                    }
-                                    /** cd on its own should redirect to root */
-                                    if (parsed.length == 1) {
-                                        changeDir(rootFS);
-                                        break;
-                                    }
+                            let tokens = new Lexer(input).lex();
+                            newOutput.content += evaluate_command(tokens);
 
-                                    else {
-                                        let dir = parsed[1];
-                                        if (dir == "..") {
-                                            changeDir(pwd.getParent())
-                                            break;
-                                        }
-
-                                        let node = rootFS.getChild(dir);
-                                        if (node == undefined) {
-                                            newOutput.content += "No such directory found";
-                                        }
-                                        else {
-                                            changeDir(node);
-                                        }
-                                    }
-
-                                    break;
-                                }
-                                default: {
-                                    newOutput.content += `Unknown command: ${input}`; 
-                                    break;
-                                }
-                            }
-                            // add the user's input to the command history
                             setOutput([
                                 ...output,
-                                {server, user, pwd_str: pwd.filename, content: input, output_only: false},
+                                inputLine,
                                 newOutput
                             ])
                             setInput("");
                             break;
+
+                            switch (input) {
+                            }
+                            // add the user's input to the command history
                         }
                         case "l": {
                             if (event.ctrlKey) {
