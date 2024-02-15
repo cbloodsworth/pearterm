@@ -113,7 +113,10 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                 }
             }
             case (CommandName.rm): {
-                
+                break;
+            }
+            case (CommandName.exit): {
+                window.close();
                 break;
             }
             default: {
