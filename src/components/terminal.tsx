@@ -23,7 +23,8 @@ interface Line {
     output_only?: boolean;
 }
 
-const server = 'portfolio'
+const server = 'portfolio';
+const dirColorChar = '\u1242';
 
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => {
     const [input, setInput] = useState("");
@@ -48,14 +49,21 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
 
         switch (command.name) {
             case (CommandName.ls): {
-                let filenames = pwd.getChildrenFilenames();
-                
+                // This is for coloring logic. (Directories vs files)
+                let children = pwd.getChildren().sort((a,b) => 
+                    a.getFilename().toLowerCase().localeCompare(b.getFilename().toLowerCase()
+                ));
+                let filenames = children.map((child) => {
+                    if (child.isDirectory) return dirColorChar+child.getFilename()+dirColorChar;
+                    else return child.getFilename();
+                })
+
                 // If we don't have -a flag, we want to get rid of hidden directories
                 if (command.flags.indexOf("a") == -1) {
-                    filenames = pwd.getChildrenFilenames().filter((filename) => filename[0] != '.');
+                    filenames = filenames.filter((filename) => filename[0] != '.');
                 }
                 
-                return filenames.toString();
+                return filenames.join('\u00A0\u00A0');
             }
             case (CommandName.pwd): { return pwd.getFilename(); }
             case (CommandName.cd): {
@@ -68,6 +76,9 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                     const dir = (filename === "..") ? pwd.getParent() : pwd.getChild(filename);
                     if (dir == undefined) {
                         return `Error: ${command.name}: No such file or directory`;
+                    }
+                    else if (!dir.isDirectory) {
+                        return `Error: ${command.name}: ${command.parameters[0]} is not a directory`
                     }
                     else {
                         changeDir(dir);
@@ -119,8 +130,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                 break;
             }
             case (CommandName.echo): {
-                // Not good for performance, but let's be real: It's for echo, who cares.
-                return command.parameters.toString().split(",").join(" ");
+                return command.parameters.join(" ");
             }
             case (""): {
                 break;
@@ -136,8 +146,14 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
         <div className='window terminal' onClick={() => { inputRef.current.focus(); }}>
             {output.map((line) => (
                 <>
-                    { (line.output_only) ? <></> : <Prompt server={server} user={line.user} pwd={line.pwd_str} />}
-                    <span>{line.content}</span>
+                    {(line.output_only) ? <></> : <Prompt server={server} user={line.user} pwd={line.pwd_str} />}
+                    {line.content.split(dirColorChar).map((l, index) => {
+                        return (
+                            <span key={index} style={{color: (index % 2 == 1)?"#6262E0":"" }}>
+                                {l}
+                            </span>
+                        );
+                    })}
                     <div></div>
                 </>
             ))}

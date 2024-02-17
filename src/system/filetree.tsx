@@ -34,8 +34,20 @@ class FileSystemNode {
         return (this.parent) ? this.parent : this;
     }
 
+    getChildren() {
+        return this.children;
+    }
+
     getChild(filename: string): FileSystemNode | undefined {
         return this.children.find((child) => child.getFilename() === filename)
+    }
+
+    getSubdirectories() {
+        return this.children.filter((child) => child.isDirectory).map((child) => child.getFilename());
+    }
+
+    getFiles() {
+        return this.children.filter((child) => !child.isDirectory).map((child) => child.getFilename());
     }
 
     /** Adds a file to the directory's children list, only if it's a directory */
