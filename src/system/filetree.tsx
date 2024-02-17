@@ -38,6 +38,11 @@ class FileSystemNode {
         return this.children;
     }
 
+    /**
+     * Given a string, returns the child
+     * @param filename filename of child 
+     * @returns the child object if it exists, undefined if not
+     */
     getChild(filename: string): FileSystemNode | undefined {
         return this.children.find((child) => child.getFilename() === filename)
     }
@@ -68,11 +73,21 @@ class FileSystemNode {
         this.children.push(new FileSystemNode(this, filename, isDirectory, content))
     }
 
-    /** Removes single file from filesystem */
+    /**
+     * Removes file from current scope.
+     * @param filename 
+     * @returns 0 if completed, error code if not:
+     *          1 if file doesn't exist in current scope
+     *          2 if file is a directory
+     */
     removeFile(filename: string) {
-        if (this.isDirectory) {
-            throw Error('Cannot remove directories');
-        }
+        const file = this.getChild(filename);
+        if (file === undefined) { return 1; }
+        if (file.isDirectory) { return 2; }
+
+        const remove_index = this.children.indexOf(file);
+        this.children.splice(remove_index, 1);
+        return 0;
     }
 
     /** Recursively removes entire directory and all subcontents */
