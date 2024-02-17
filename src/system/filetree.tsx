@@ -90,14 +90,24 @@ class FileSystemNode {
         return 0;
     }
 
-    /** Recursively removes entire directory and all subcontents */
+    /**
+     * Removes empty directories, returns error code if contains content
+     * @param filename 
+     * @returns 0 if completed, error code if not:
+     *          1 if file doesn't exist in current scope
+     *          2 if file is not a directory
+     *          3 if directory is not empty
+     */
     removeDirectory(filename: string) {
-        const to_remove = this.getChild(filename);
-        if (to_remove == undefined) { throw Error('Could not find child with given name.') }
-        if (!to_remove.isDirectory) { throw Error('Expected to remove a directory, got a file.'); }
+        const file = this.getChild(filename);
+        if (file == undefined) { return 1; }
+        if (!file.isDirectory) { return 2; }
+        if (file.getChildren().length != 0) { return 3; }
 
-        const remove_index = this.children.indexOf(to_remove);
+        const remove_index = this.children.indexOf(file);
         this.children.splice(remove_index, 1);
+
+        return 0;
     }
 
     /** Recursively removes entire directory and all subcontents */

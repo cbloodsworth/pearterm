@@ -122,21 +122,28 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                     break;
                 }
             }
-            case (CommandName.rm): {
+            case (CommandName.rm):
+            case (CommandName.rmdir): {
                 if (command.parameters.length != 1) {
-                    return `Error: ${command.name}: Does not currently support removing multiple directories`;
+                    return `Error: ${command.name}: Does not currently support removing multiple items`;
                 }
                 const remove_name = command.parameters[0];
-                const code = pwd.removeFile(remove_name);
+                const code = (command.name === CommandName.rm) ?
+                    pwd.removeFile(remove_name) : pwd.removeDirectory(remove_name);
+
                 if (code === 0) {
                     break;
                 }
                 else if (code === 1) {
                     /** TODO: Here, we would want to check the global scope in case of absolute filepaths. */
-                    return `Error: ${command.name}: Cannot remove ${remove_name}: No such file`;
+                    return `Error: ${command.name}: Cannot remove ${remove_name}: No such file/directory`;
                 }
                 else if (code === 2) {
-                    return `Error: ${command.name}: Cannot remove ${remove_name}: Is a directory`;
+                    return `Error: ${command.name}: Cannot remove ${remove_name}: Is a \
+                        ${(command.name === CommandName.rm) ? "directory" : "file"}`;
+                }
+                else if (code === 3) {
+                    return `Error: ${command.name}: Failed to remove ${remove_name}: Directory not empty`
                 }
                 else {
                     return `Error: ${command.name}: Undefined error`
