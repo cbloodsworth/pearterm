@@ -39,7 +39,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
             return "";
         }
 
-        let command = new Parser(tokens).parse()
+        const command = new Parser(tokens).parse()
         
         // Checking for syntax errors. Errored command parses always start with "SyntaxError" and then the reason for error
         if (command.name.startsWith("Syntax Error:")) {
@@ -57,17 +57,15 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                 
                 return filenames.toString();
             }
-            case (CommandName.pwd): {
-                return pwd.getFilename();
-            }
+            case (CommandName.pwd): { return pwd.getFilename(); }
             case (CommandName.cd): {
                 if (command.parameters.length == 0) {
                     changeDir(rootFS);
                 }
                 else if (command.parameters.length == 1) {
-                    let filename = command.parameters[0];
+                    const filename = command.parameters[0];
 
-                    let dir = (filename === "..") ? pwd.getParent() : pwd.getChild(filename);
+                    const dir = (filename === "..") ? pwd.getParent() : pwd.getChild(filename);
                     if (dir == undefined) {
                         return `Error: ${command.name}: No such file or directory`;
                     }
@@ -79,10 +77,11 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
             }
             case (CommandName.clear): {
                 // Implementation for this is currently outside of this function, in the onKeyDown event
+                // I couldn't think of a better way to do it ;-;
                 break;
             }
             case (CommandName.touch): {
-                let new_filename = command.parameters[0];
+                const new_filename = command.parameters[0];
                 if (new_filename.includes('/')) {
                     return `Error: ${command.name}: Illegal character used`;
                 }
@@ -119,6 +118,13 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                 window.close();
                 break;
             }
+            case (CommandName.echo): {
+                // Not good for performance, but let's be real: It's for echo, who cares.
+                return command.parameters.toString().split(",").join(" ");
+            }
+            case (""): {
+                break;
+            }
             default: {
                 return `Error: ${command.name} is planned to be implemented, but currently is unavailable.`
             }
@@ -150,8 +156,8 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                 onKeyDown={event => {
                     switch (event.key) {
                         case "Enter": {
-                            let inputLine: Line = {server, user, pwd_str: pwd.filename, content: input, output_only: false}
-                            let newOutput: Line = {server, user, pwd_str: pwd.filename, content: "", output_only: true};
+                            const inputLine: Line = {server, user, pwd_str: pwd.filename, content: input, output_only: false}
+                            const newOutput: Line = {server, user, pwd_str: pwd.filename, content: "", output_only: true};
 
                             newOutput.content += evaluate_command(new Lexer(input).lex());
 

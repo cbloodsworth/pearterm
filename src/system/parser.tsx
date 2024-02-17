@@ -95,12 +95,12 @@ export class Parser {
         if (this.tokens[0].content == "") return get_empty_command();
         if (!this.match(TokenKind.COMMAND)) return get_error_command("Unknown command.");
 
-        let cmd_name = this.tokens[0].content;  // Gathered command name here
-        let template = command_map.get(cmd_name);
+        const cmd_name = this.tokens[0].content;  // Gathered command name here
+        const template = command_map.get(cmd_name);
         if (template == undefined) return get_error_command("Unknown command.");
 
         /** Verifying flags */
-        let cmd_flags = []
+        const cmd_flags = []
         while (this.match(TokenKind.FLAG)) {
             let flag: string = this.prev().content;
             if (!isFlag(flag)) return get_error_command("Unexpected flag.");  // can never be too safe
@@ -117,11 +117,12 @@ export class Parser {
         }
 
         /** Verifying parameters */
-        let cmd_params = []
+        const cmd_params = []
         while (this.match(TokenKind.PARAMETER)) { 
             cmd_params.push(this.prev().content)
         }
-        if (!(template.params_expected.includes(cmd_params.length))) {
+        if (template.params_expected.length != 0 
+            && !(template.params_expected.includes(cmd_params.length))) {
             return get_error_command(`Unexpected number of parameters: ${cmd_params.length}. Expected ${template.params_expected} parameters.`);
         }
 
