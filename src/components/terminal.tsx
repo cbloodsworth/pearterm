@@ -128,8 +128,14 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                     return `Error: ${command.name}: Does not currently support removing multiple items`;
                 }
                 const remove_name = command.parameters[0];
-                const code = (command.name === CommandName.rm) ?
-                    pwd.removeFile(remove_name) : pwd.removeDirectory(remove_name);
+                let code: Number;
+                if (command.name == CommandName.rm) {
+                    code = (command.flags.indexOf('r') != -1) ?
+                        pwd.removeDirectoryRecursive(remove_name) : pwd.removeFile(remove_name);
+                }
+                else { 
+                    code = pwd.removeDirectory(remove_name);
+                }
 
                 if (code === 0) {
                     break;

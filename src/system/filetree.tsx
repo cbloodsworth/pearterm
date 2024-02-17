@@ -87,6 +87,7 @@ class FileSystemNode {
 
         const remove_index = this.children.indexOf(file);
         this.children.splice(remove_index, 1);
+
         return 0;
     }
 
@@ -112,7 +113,22 @@ class FileSystemNode {
 
     /** Recursively removes entire directory and all subcontents */
     removeDirectoryRecursive(filename: string) {
+        const to_remove = this.getChild(filename);
+        if (to_remove === undefined) { return 1; }
 
+        // While remove has children
+        while (to_remove.children.length > 0) {
+            const child = to_remove.getChildren()[to_remove.children.length - 1];
+            const childname = child.getFilename();
+            
+            to_remove.removeDirectoryRecursive(childname);
+        }
+
+        const remove_index = this.children.indexOf(to_remove);
+        this.children.splice(remove_index, 1);
+        console.log(`Removed ${filename}`);
+
+        return 0;
     }
 }
 
