@@ -29,6 +29,8 @@ const dirColorChar = '\u1242';
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => {
     const [input, setInput] = useState("");
     const [output, setOutput] = useState<Line[]>([]);
+    const [commandHistory, setCommandHistory] = useState<string[]>([]);
+    const historyIndex = useRef(-1);
 
     const inputRef = useRef();
     useEffect(() => { inputRef.current.focus(); }, []);
@@ -205,7 +207,14 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                             const inputLine: Line = {server, user, pwd_str: pwd.filename, content: input, output_only: false}
                             const newOutput: Line = {server, user, pwd_str: pwd.filename, content: "", output_only: true};
 
-                            newOutput.content += evaluate_command(new Lexer(input).lex());
+                            historyIndex.current = -1;
+
+                            const result = evaluate_command(new Lexer(input).lex());
+                            setCommandHistory([
+                                input,
+                                ...commandHistory
+                            ])
+                            newOutput.content += result;
 
                             setOutput([
                                 ...output,
@@ -225,7 +234,6 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                             if (event.ctrlKey) {
                                 event.preventDefault();
                                 setOutput([]);
-                                setInput("");
                             }
                             break;
                         }
@@ -233,6 +241,29 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                         case "Tab": {
                             event.preventDefault();
 
+                            break;
+                        }
+
+                        case "ArrowUp": {
+                            event.preventDefault();
+                            if (historyIndex.current < commandHistory.length - 1) {
+                                historyIndex.current++;
+                                setInput(commandHistory[historyIndex.current]);
+                            }
+                            console.log(historyIndex.current);
+                            break;
+                        }
+                        case "ArrowDown": {
+                            event.preventDefault();
+                            // Remember: here -1 means we're already at the most current line in history
+                            if (historyIndex.current >= 0) {
+                                historyIndex.current--;
+                                setInput(commandHistory[historyIndex.current] || "");
+                            }
+                            else if (historyIndex.current === -1) {
+                                setInput("");
+                            }
+                            console.log(historyIndex.current);
                             break;
                         }
                         default: {
