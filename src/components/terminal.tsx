@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 import Prompt from './prompt'
-import { Parser, Lexer, Token, TokenKind } from "../system/parser"
+import { Validator, Tokenizer, Token, TokenKind } from "../system/parser"
 import { CommandName } from "../system/commands"
 
 import '../styles/view.css';
@@ -42,7 +42,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
             return "";
         }
 
-        const command = new Parser(tokens).parse()
+        const command = new Validator(tokens).parse()
         
         // Checking for syntax errors. Errored command parses always start with "SyntaxError" and then the reason for error
         if (command.name.startsWith("Syntax Error:")) {
@@ -209,7 +209,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
 
                             historyIndex.current = -1;
 
-                            const result = evaluate_command(new Lexer(input).lex());
+                            const result = evaluate_command(new Tokenizer(input).tokenize());
                             setCommandHistory([
                                 input,
                                 ...commandHistory

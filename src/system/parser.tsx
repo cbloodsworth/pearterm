@@ -13,13 +13,49 @@ const isFlag = (raw_token: string) => {
     return raw_token.length >= 2 && raw_token[0] === '-';
 }
 
-export class Lexer {
+export class Scanner {
+    source: string;
+    start: number;  // start of current consumption
+    current: number;  // index lexer is currently at
+
+    constructor(source: string) {
+        this.source = source.trim();
+        this.start = 0;
+        this.current = 0;
+    }
+
+    get = (num: number) => this.source.charAt(this.current + num);
+    has = (num: number) => (this.get(num) != "");
+    getNext = () => this.get(0);
+    hasNext = () => this.has(0);
+
+    lex = (): string[] => {
+        const res: string[] = [];
+        while (this.hasNext()) {
+            let curr = this.getNext();
+            if (curr === ' ') {
+                res.push(this.source.substring(this.start, this.current));
+                this.current++;
+                while (this.getNext() === ' ') 
+                    { this.current++; }
+
+                this.start = this.current;
+            }
+            this.current++;
+        }
+        res.push(this.source.substring(this.start, this.current));
+        return res;
+    }
+}
+
+export class Tokenizer {
     raw_tokens: string[];
     tokens: Token[];
     current: number;
 
     constructor(raw_content: string) {
-        this.raw_tokens = raw_content.trim().split(' ');
+        this.raw_tokens = (new Scanner(raw_content)).lex();
+        console.log(this.raw_tokens)
         this.tokens = [];
         this.current = 0;
     }
@@ -43,7 +79,7 @@ export class Lexer {
         }
     }
 
-    lex(): Token[] {
+    tokenize(): Token[] {
         while (true) {
             const curr = this.next();
             this.tokens.push(curr);
@@ -54,7 +90,7 @@ export class Lexer {
     }
 }
 
-export class Parser {
+export class Validator {
     EOF = { kind: TokenKind.EOF, content: 'EOF' }
     tokens: Token[];
     current: number;
