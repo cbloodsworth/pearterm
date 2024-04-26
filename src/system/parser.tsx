@@ -17,34 +17,62 @@ export class Scanner {
     source: string;
     start: number;  // start of current consumption
     current: number;  // index lexer is currently at
+    raw_tokens: string[];
 
     constructor(source: string) {
         this.source = source.trim();
         this.start = 0;
         this.current = 0;
+        this.raw_tokens = [];
     }
 
     get = (num: number) => this.source.charAt(this.current + num);
     has = (num: number) => (this.get(num) != "");
     getNext = () => this.get(0);
     hasNext = () => this.has(0);
+    advance = () => {
+        const substr = this.source.substring(this.start, this.current);
+        if (substr.length != 0) this.raw_tokens.push(substr);
+        this.current++;
+        this.start = this.current;
+    }
 
-    lex = (): string[] => {
-        const res: string[] = [];
+    lex = (): string[] | undefined => {
+        const scope: string[] = [];
         while (this.hasNext()) {
             let curr = this.getNext();
-            if (curr === ' ') {
-                res.push(this.source.substring(this.start, this.current));
-                this.current++;
-                while (this.getNext() === ' ') 
-                    { this.current++; }
+            switch (curr) {
+                case ('\''): // Single quote
+                case ('"'):  // Double quote
+                {
+                    scope.push(curr);
+                    this.advance();
 
-                this.start = this.current;
+                    while (this.hasNext()) { 
+                        if (this.getNext() === scope[scope.length - 1]) {
+                            scope.pop();
+                            this.advance();
+                            break;
+                        }
+                        this.current++; 
+                    }
+                    break;
+                }
+                case (' '):  // Split on spaces by default
+                {
+                    this.advance();
+                    while (this.getNext() === ' ') 
+                        { this.current++; }
+
+                    this.current--;
+
+                    break;
+                }
             }
             this.current++;
         }
-        res.push(this.source.substring(this.start, this.current));
-        return res;
+        this.advance();
+        return this.raw_tokens;
     }
 }
 
