@@ -15,7 +15,7 @@ const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, pwd, change
         <div className='tabList'>
             <Tab
                 key={"terminal"}
-                label={"terminal@"+pwd.filename}
+                label={"terminal@"+pwd.getFilename()}
                 thumbnail={tabThumbnails}
                 isSelected={true} // fix later
                 onClick={() => changeDir(pwd)}

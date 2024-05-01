@@ -1,14 +1,14 @@
 class FileSystemNode {
-    root: FileSystemNode;
-    parent: FileSystemNode | null;
-    children: FileSystemNode[];
+    private root: FileSystemNode;
+    private parent: FileSystemNode | null;
+    private children: FileSystemNode[];
 
-    filename: string;  // semantic filename or directory name
-    filepath: string;  // full filepath from root
-    contents: string;
-    isDirectory: boolean;
+    private filename: string;  // semantic filename or directory name
+    private filepath: string;  // full filepath from root
+    private contents: string;
+    public isDirectory: boolean;  // please don't change this manually
 
-    constructor(parent: FileSystemNode | null, filename: string, isDirectory = false, contents='') {
+    constructor(parent: FileSystemNode | null, filename: string, isDirectory=false, contents='') {
         this.parent = (parent) 
             ? parent 
             : this;
@@ -28,8 +28,11 @@ class FileSystemNode {
 
         this.contents = contents;
         this.isDirectory = isDirectory;
-
         this.children = [];
+
+        if (this.contents.length > 0 && this.isDirectory) {
+            throw Error('Directory cannot have file content.');
+        }
     }
 
     /** Sets filename. Probably used for the mv command, if that ever gets implemented. */
@@ -38,26 +41,30 @@ class FileSystemNode {
     }
 
     /** Returns current filename */
-    getFilename() {
+    public getFilename() {
         return this.filename;
     }
 
     /** Returns current filepath */
-    getFilepath() {
+    public getFilepath() {
         return this.filepath;
     }
 
     /** Gets string array output of this node's children */
-    getChildrenFilenames() {
+    public getChildrenFilenames() {
         return this.children.map((child) => child.getFilename())
     }
 
-    getParent() {
-        return (this.parent) ? this.parent : this;
+    public getParent() {
+        return this.parent;
     }
 
-    getChildren() {
+    public getChildren() {
         return this.children;
+    }
+
+    public getContents() {
+        return this.contents;
     }
 
     public getFileSystemNode(filename: string): FileSystemNode | undefined {
@@ -93,21 +100,23 @@ class FileSystemNode {
     }
 
     /** Adds a file to the directory's children list, only if it's a directory */
-    addFile(filename: string, content='') {
-        this.addItem(filename, false, content);
+    addFile(filename: string, content=''): FileSystemNode {
+        return this.addItem(filename, false, content);
     }
 
     /** Adds a directory to the directory's children list */
-    addDirectory(filename: string) {
-        this.addItem(filename, true);
+    addDirectory(filename: string): FileSystemNode {
+        return this.addItem(filename, true);
     }
 
     /** Helper function to abstract out functionality of addDirectory and addFile */
-    addItem(filename: string, isDirectory: boolean, content='') {
+    addItem(filename: string, isDirectory: boolean, content=''): FileSystemNode {
         if (!this.isDirectory) {
             throw Error('Can only add files to directories');
         }
-        this.children.push(new FileSystemNode(this, filename, isDirectory, content))
+        const result = new FileSystemNode(this, filename, isDirectory, content);
+        this.children.push(result)
+        return result;
     }
 
     /**
@@ -129,7 +138,8 @@ class FileSystemNode {
     }
 
     /**
-     * Removes empty directories, returns error code if contains content
+     * Removes empty director>ies, returns error code if contains content
+     * Equivalent to unix's `rm`
      * @param filename 
      * @returns 0 if completed, error code if not:
      *          1 if file doesn't exist in current scope
@@ -148,7 +158,12 @@ class FileSystemNode {
         return 0;
     }
 
-    /** Recursively removes entire directory and all subcontents */
+    /**
+     * Removes directory / file recursively. Equivalent to unix's `rm -rf`
+     * @param filename 
+     * @returns 0 if completed, error code if not:
+     *          1 if file doesn't exist in current scope
+     */
     removeDirectoryRecursive(filename: string) {
         const to_remove = this.getFileSystemNode(filename);
         if (to_remove === undefined) { return 1; }

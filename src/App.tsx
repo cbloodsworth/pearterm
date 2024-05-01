@@ -20,7 +20,7 @@ const App: React.FC = () => {
   /** TODO: Fix this down the line to not just choose the first in the array,
    *          it should be chosen off some other criteria (name === "main"?)
    */
-  const [pwd, changeDir] = useState<FileSystemNode>(rootFS.children[0]);
+  const [pwd, changeDir] = useState<FileSystemNode>(rootFS.getChildren()[0]);
 
   return (
     <>
