@@ -10,9 +10,9 @@ const App: React.FC = () => {
   const tabDirs = ['main', 'projects', 'links'];
   const tabThumbnails = 'https://upload.wikimedia.org/wikipedia/commons/9/9e/UbuntuCoF.svg'
 
-  /** Initialize the file system tree, with '~' as the root */
+  /** Initialize the file system tree, with '/' as the root */
   const [rootFS, modifyFS] = useState<FileSystemNode>((): FileSystemNode => {
-    const root = new FileSystemNode(null, '~', true)
+    const root = new FileSystemNode(null, '/', true)
     tabDirs.forEach((dir_name) => {root.addDirectory(dir_name)})
     return root;
   })

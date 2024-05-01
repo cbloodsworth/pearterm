@@ -1,17 +1,34 @@
 class FileSystemNode {
+    root: FileSystemNode;
     parent: FileSystemNode | null;
     children: FileSystemNode[];
 
-    filename: string;
+    filename: string;  // semantic filename or directory name
+    filepath: string;  // full filepath from root
     contents: string;
     isDirectory: boolean;
 
     constructor(parent: FileSystemNode | null, filename: string, isDirectory = false, contents='') {
+        this.parent = (parent) 
+            ? parent 
+            : this;
+        this.root = (this.parent.root)  // get the root from the parent
+            ? this.parent.root
+            : this;
+
         this.filename = filename;
+        if (parent === null) {
+            this.filepath = this.filename;
+        }
+        else {
+            this.filepath = (parent.filepath.endsWith('/')) 
+                ? parent.filepath + this.filename 
+                : parent.filepath + "/" + this.filename;
+        }
+
         this.contents = contents;
         this.isDirectory = isDirectory;
 
-        this.parent = parent;
         this.children = [];
     }
 
@@ -23,6 +40,11 @@ class FileSystemNode {
     /** Returns current filename */
     getFilename() {
         return this.filename;
+    }
+
+    /** Returns current filepath */
+    getFilepath() {
+        return this.filepath;
     }
 
     /** Gets string array output of this node's children */
@@ -38,13 +60,28 @@ class FileSystemNode {
         return this.children;
     }
 
-    /**
-     * Given a string, returns the child
-     * @param filename filename of child 
-     * @returns the child object if it exists, undefined if not
-     */
-    getChild(filename: string): FileSystemNode | undefined {
-        return this.children.find((child) => child.getFilename() === filename)
+    public getFileSystemNode(filename: string): FileSystemNode | undefined {
+        return this.getChildFile(filename) || this.getAbsoluteFile(filename);
+    }
+
+    private getChildFile(filename: string): FileSystemNode | undefined {
+        return this.children.find((child) => child.getFilename() === filename);
+    }
+
+    private getAbsoluteFile(filename: string): FileSystemNode | undefined {
+        let curr = (filename.charAt(0) === '/')
+            ? this.root
+            : this
+
+        const path = filename.split('/').filter((value) => value.length > 0);
+        for (const file of path) {
+            console.log(file);
+            const child = curr.getChildFile(file);
+            if (child) { curr = child; }
+            else { return undefined; }
+        }
+
+        return curr;
     }
 
     getSubdirectories() {
@@ -81,7 +118,7 @@ class FileSystemNode {
      *          2 if file is a directory
      */
     removeFile(filename: string) {
-        const file = this.getChild(filename);
+        const file = this.getFileSystemNode(filename);
         if (file === undefined) { return 1; }
         if (file.isDirectory) { return 2; }
 
@@ -100,7 +137,7 @@ class FileSystemNode {
      *          3 if directory is not empty
      */
     removeDirectory(filename: string) {
-        const file = this.getChild(filename);
+        const file = this.getFileSystemNode(filename);
         if (file == undefined) { return 1; }
         if (!file.isDirectory) { return 2; }
         if (file.getChildren().length != 0) { return 3; }
@@ -113,7 +150,7 @@ class FileSystemNode {
 
     /** Recursively removes entire directory and all subcontents */
     removeDirectoryRecursive(filename: string) {
-        const to_remove = this.getChild(filename);
+        const to_remove = this.getFileSystemNode(filename);
         if (to_remove === undefined) { return 1; }
 
         // While remove has children

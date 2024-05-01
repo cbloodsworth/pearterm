@@ -67,7 +67,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                 
                 return filenames.join('\u00A0\u00A0');
             }
-            case (CommandName.pwd): { return pwd.getFilename(); }
+            case (CommandName.pwd): { return pwd.getFilepath(); }
             case (CommandName.cd): {
                 if (command.parameters.length == 0) {
                     changeDir(rootFS);
@@ -75,7 +75,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                 else if (command.parameters.length == 1) {
                     const filename = command.parameters[0];
 
-                    const dir = (filename === "..") ? pwd.getParent() : pwd.getChild(filename);
+                    const dir = (filename === "..") ? pwd.getParent() : pwd.getFileSystemNode(filename);
                     if (dir == undefined) {
                         return `Error: ${command.name}: No such file or directory`;
                     }
@@ -163,6 +163,10 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
             }
             case (CommandName.echo): {
                 return command.parameters.join(" ");
+            }
+            case (CommandName.debug): {
+                let debugString = pwd.root.filepath  // modify this to print arbitrary output on using "debug"
+                return debugString;
             }
             case (""): {
                 break;

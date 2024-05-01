@@ -10,6 +10,7 @@ export enum CommandName {
     rmdir = 'rmdir',
     exit = 'exit',
     echo = 'echo',
+    debug = 'debug'
 }
 
 /** Interface for a command for validation purposes.
@@ -53,6 +54,7 @@ const CMD_RM: CommandTemplate = { name: CommandName.rm, allowed_flags: ["r", "f"
 const CMD_RMDIR: CommandTemplate = { name: CommandName.rmdir, allowed_flags: ["r", "f"], params_expected:[1] }
 const CMD_EXIT: CommandTemplate = { name: CommandName.exit, allowed_flags: [], params_expected: [0]}
 const CMD_ECHO: CommandTemplate = { name: CommandName.echo, allowed_flags: [], params_expected: []}
+const CMD_DEBUG: CommandTemplate = { name: CommandName.debug, allowed_flags: [], params_expected: []}
 
 export const command_map = new Map([
     ["".concat(CommandName.ls), CMD_LS],
@@ -65,4 +67,5 @@ export const command_map = new Map([
     ["".concat(CommandName.rmdir), CMD_RMDIR],
     ["".concat(CommandName.exit), CMD_EXIT],
     ["".concat(CommandName.echo), CMD_ECHO],
+    ["".concat(CommandName.debug), CMD_DEBUG],
 ])

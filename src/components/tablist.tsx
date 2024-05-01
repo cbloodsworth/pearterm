@@ -13,15 +13,13 @@ interface TabListProps {
 const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, pwd, changeDir }) => {
     return (
         <div className='tabList'>
-            {tabLabels.map((label) => (
-                <Tab
-                    key={label}
-                    label={label}
-                    thumbnail={tabThumbnails}
-                    isSelected={label === pwd.filename}
-                    onClick={() => changeDir(pwd)}
-                />
-            ))}
+            <Tab
+                key={"terminal"}
+                label={"terminal@"+pwd.filename}
+                thumbnail={tabThumbnails}
+                isSelected={true} // fix later
+                onClick={() => changeDir(pwd)}
+            />
         </div>
     );
 };
