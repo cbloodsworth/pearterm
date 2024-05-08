@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 
 import Prompt from './prompt'
 import { Validator, Tokenizer, Token, TokenKind } from "../system/parser"
-import { CommandName } from "../system/commands"
+import { Command, CommandName } from "../system/commands"
 
 import '../styles/view.css';
 
@@ -24,7 +24,15 @@ interface Line {
 }
 
 const server = 'portfolio';
-const dirColorChar = '\u1242';
+const dirColorChar = '\u1242';  // we assume that this won't be input by the user....
+
+
+/**
+ * Returns formatted command error, given the name and associated error.
+ */
+const getError = (command: Command, error: string): string => {
+    return `Error: ${command.name}: ${error}`;
+}
 
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => {
     const [input, setInput] = useState("");
@@ -34,7 +42,6 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
 
     const inputRef = useRef();
     useEffect(() => { inputRef.current.focus(); }, []);
-
 
     /** Has side effects. Validates and evaluates command given current context, and returns output. */
     const evaluate_command = (tokens: Token[]): string => {
@@ -51,40 +58,46 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
 
         switch (command.name) {
             case (CommandName.ls): {
-                // This is for coloring logic. (Directories vs files)
-                let children = pwd.getChildren().sort((a,b) => 
+                // Sort alphabetically
+                const children = pwd.getChildren().sort((a,b) => 
                     a.getFilename().toLowerCase().localeCompare(b.getFilename().toLowerCase()
                 ));
+                
+                // This is for coloring logic. (Directories vs files)
                 let filenames = children.map((child) => {
-                    if (child.isDirectory) return dirColorChar+child.getFilename()+dirColorChar;
-                    else return child.getFilename();
+                    return (child.isDirectory) 
+                        ? dirColorChar+child.getFilename()+dirColorChar
+                        : child.getFilename();
+                }).map((name) => {
+                    return (name.search(/\s/))
+                        ? "'"+name+"'"
+                        : name;
                 })
-
+                
                 // If we don't have -a flag, we want to get rid of hidden directories
-                if (command.flags.indexOf("a") == -1) {
+                if (command.flags.indexOf("a") === -1) {
                     filenames = filenames.filter((filename) => filename[0] != '.');
                 }
                 
-                return filenames.join('\u00A0\u00A0');
+                return filenames.join('\u00A0\u00A0');  // add two spaces inbetween
             }
             case (CommandName.pwd): { return pwd.getFilepath(); }
             case (CommandName.cd): {
+                // If no parameters, go to root
                 if (command.parameters.length == 0) {
                     changeDir(rootFS);
                 }
-                else if (command.parameters.length == 1) {
-                    const filename = command.parameters[0];
 
-                    const dir = (filename === "..") ? pwd.getParent() : pwd.getFileSystemNode(filename);
-                    if (dir == undefined) {
-                        return `Error: ${command.name}: No such file or directory`;
-                    }
-                    else if (!dir.isDirectory) {
-                        return `Error: ${command.name}: ${command.parameters[0]} is not a directory`
-                    }
-                    else {
-                        changeDir(dir);
-                    }
+                else if (command.parameters.length == 1) {
+                    const destName = command.parameters[0];
+                    const dir = (destName === "..") ? pwd.getParent() : pwd.getFileSystemNode(destName);
+
+                    if (dir == undefined) { return getError(command, `No such file or directory`); }
+                    else if (!dir.isDirectory) { return getError(command, `${command.parameters[0]} is not a directory`); }
+                    else { changeDir(dir); }
+                }
+                else {
+                    return getError(command, `Too many parameters.`)
                 }
                 break;
             }
@@ -95,32 +108,24 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
             }
             case (CommandName.touch): {
                 const new_filename = command.parameters[0];
-                if (new_filename.includes('/')) {
-                    return `Error: ${command.name}: Illegal character used`;
-                }
+                if (new_filename.includes('/')) { return getError(command, `Illegal character used`); }
+
                 pwd.addFile(new_filename);
                 break;
             }
             case (CommandName.mkdir): {
-                const dirname = command.parameters[0];
-                let new_dirname = dirname;
-                
-                while (new_dirname[new_dirname.length - 1] == '/') {
-                    new_dirname = new_dirname.substring(0,new_dirname.length - 1);
+                // Get rid of trailing /'s
+                const dirname = command.parameters[0].replace(/\/+$/, '');  
+
+                if (dirname.includes('/')) { 
+                    return getError(command, `Illegal character used`);
                 }
-                
-                if (new_dirname.includes('/')) {
-                    // Has a '/', but it's not at the end of the name. Illegal.
-                    if (new_dirname.indexOf('/') != new_dirname.length - 1) {
-                        return `Error: ${command.name}: Illegal character used`;
-                    }
-                    // Otherwise, we allow it. This allows directory names like mydir/ 
-                }
-                if (pwd.getChildrenFilenames().includes(new_dirname)) {
-                    return `Error: ${command.name}: Cannot create directory '${dirname}': File exists`;
+                // Does this name already exist in this location?
+                if (pwd.getChildrenFilenames().includes(dirname)) {
+                    return getError(command, `Cannot create directory '${command.parameters[0]}': File exists`);
                 }
                 else {
-                    pwd.addDirectory(new_dirname);
+                    pwd.addDirectory(dirname);
                     break;
                 }
             }
