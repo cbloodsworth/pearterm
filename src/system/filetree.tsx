@@ -3,10 +3,10 @@ class FileSystemNode {
     private parent: FileSystemNode | null;
     private children: FileSystemNode[];
 
-    private filename: string;  // semantic filename or directory name
-    private filepath: string;  // full filepath from root
-    private contents: string;
-    public isDirectory: boolean;  // please don't change this manually
+    public filename: string;  // semantic filename or directory name
+    public filepath: string;  // full filepath from root
+    public contents: string;
+    public isDirectory: boolean; 
 
     constructor(parent: FileSystemNode | null, filename: string, isDirectory=false, contents='') {
         this.parent = (parent) 

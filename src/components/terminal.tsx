@@ -60,19 +60,20 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
             case (CommandName.ls): {
                 // Sort alphabetically
                 const children = pwd.getChildren().sort((a,b) => 
-                    a.getFilename().toLowerCase().localeCompare(b.getFilename().toLowerCase()
-                ));
+                    a.filename.localeCompare(b.filename)
+                );
                 
-                // This is for coloring logic. (Directories vs files)
                 let filenames = children.map((child) => {
-                    return (child.isDirectory) 
-                        ? dirColorChar+child.getFilename()+dirColorChar
-                        : child.getFilename();
-                }).map((name) => {
-                    return (name.search(/\s/))
-                        ? "'"+name+"'"
-                        : name;
-                })
+                    let displayName = child.filename;
+
+                    // If whitespace is anywhere in its name, surround display with quotes
+                    if (/\s/.test(displayName)) { displayName = "'"+displayName+"'"; }
+                    
+                    // This is for coloring logic. (Directories vs files)
+                    if (child.isDirectory) { displayName = dirColorChar+displayName+dirColorChar }
+
+                    return displayName;
+                });
                 
                 // If we don't have -a flag, we want to get rid of hidden directories
                 if (command.flags.indexOf("a") === -1) {
