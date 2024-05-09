@@ -67,12 +67,12 @@ class FileSystemNode {
         return this.contents;
     }
 
-    public getFileSystemNode(filename: string): FileSystemNode | undefined {
+    public getFileSystemNode(filename: string): FileSystemNode | null {
         return this.getChildFile(filename) || this.getAbsoluteFile(filename);
     }
 
-    private getChildFile(filename: string): FileSystemNode | undefined {
-        return this.children.find((child) => child.getFilename() === filename);
+    private getChildFile(filename: string): FileSystemNode | null {
+        return this.children.find((child) => child.getFilename() === filename) || null;
     }
 
     private getAbsoluteFile(filename: string): FileSystemNode | undefined {

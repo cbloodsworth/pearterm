@@ -85,21 +85,17 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
             case (CommandName.pwd): { return pwd.getFilepath(); }
             case (CommandName.cd): {
                 // If no parameters, go to root
-                if (command.parameters.length == 0) {
-                    changeDir(rootFS);
-                }
+                if (command.parameters.length == 0) { changeDir(rootFS); }
 
                 else if (command.parameters.length == 1) {
                     const destName = command.parameters[0];
                     const dir = (destName === "..") ? pwd.getParent() : pwd.getFileSystemNode(destName);
 
                     if (dir == undefined) { return getError(command, `No such file or directory`); }
-                    else if (!dir.isDirectory) { return getError(command, `${command.parameters[0]} is not a directory`); }
+                    else if (!dir.isDirectory) { return getError(command, `${destName} is not a directory`); }
                     else { changeDir(dir); }
                 }
-                else {
-                    return getError(command, `Too many parameters.`)
-                }
+                else { return getError(command, `Too many parameters.`) }
                 break;
             }
             case (CommandName.clear): {
