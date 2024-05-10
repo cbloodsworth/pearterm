@@ -26,7 +26,6 @@ interface Line {
 const server = 'portfolio';
 const dirColorChar = '\u1242';  // we assume that this won't be input by the user....
 
-
 /**
  * Returns formatted command error, given the name and associated error.
  */
@@ -38,9 +37,10 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
     const [input, setInput] = useState("");
     const [output, setOutput] = useState<Line[]>([]);
     const [commandHistory, setCommandHistory] = useState<string[]>([]);
-    const historyIndex = useRef(-1);
 
+    const historyIndex = useRef(-1);
     const inputRef = useRef();
+
     useEffect(() => { inputRef.current.focus(); }, []);
 
     /** Has side effects. Validates and evaluates command given current context, and returns output. */
@@ -58,12 +58,12 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
 
         switch (command.name) {
             case (CommandName.ls): {
-                // Sort alphabetically
-                const children = pwd.getChildren().sort((a,b) => 
-                    a.filename.localeCompare(b.filename)
-                );
-                
-                let filenames = children.map((child) => {
+                // Sort output alphabetically and filter out hidden files if necessary
+                const children = pwd.getChildren()
+                    .sort((a,b) => a.filename.localeCompare(b.filename))
+                    .filter((child) => child.filename[0] !== '.' || command.flags.indexOf("a") !== -1)
+
+                const filenames = children.map((child) => {
                     let displayName = child.filename;
 
                     // If whitespace is anywhere in its name, surround display with quotes
@@ -74,11 +74,6 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
 
                     return displayName;
                 });
-                
-                // If we don't have -a flag, we want to get rid of hidden directories
-                if (command.flags.indexOf("a") === -1) {
-                    filenames = filenames.filter((filename) => filename[0] != '.');
-                }
                 
                 return filenames.join('\u00A0\u00A0');  // add two spaces inbetween
             }
@@ -91,7 +86,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                     const destName = command.parameters[0];
                     const dir = (destName === "..") ? pwd.getParent() : pwd.getFileSystemNode(destName);
 
-                    if (dir == undefined) { return getError(command, `No such file or directory`); }
+                    if (dir === null) { return getError(command, `No such file or directory`); }
                     else if (!dir.isDirectory) { return getError(command, `${destName} is not a directory`); }
                     else { changeDir(dir); }
                 }
@@ -114,9 +109,9 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                 // Get rid of trailing /'s
                 const dirname = command.parameters[0].replace(/\/+$/, '');  
 
-                if (dirname.includes('/')) { 
-                    return getError(command, `Illegal character used`);
-                }
+                // Cannot use / 
+                if (dirname.includes('/')) { return getError(command, `Illegal character used`); }
+
                 // Does this name already exist in this location?
                 if (pwd.getChildrenFilenames().includes(dirname)) {
                     return getError(command, `Cannot create directory '${command.parameters[0]}': File exists`);
@@ -126,37 +121,25 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                     break;
                 }
             }
-            case (CommandName.rm):
-            case (CommandName.rmdir): {
-                if (command.parameters.length != 1) {
-                    return `Error: ${command.name}: Does not currently support removing multiple items`;
-                }
+            case (CommandName.rm): {
+                if (command.parameters.length != 1) { return getError(command, `Removing multiple items not supported`); }
                 const remove_name = command.parameters[0];
-                let code: Number;
-                if (command.name == CommandName.rm) {
-                    code = (command.flags.indexOf('r') != -1) ?
-                        pwd.removeDirectoryRecursive(remove_name) : pwd.removeFile(remove_name);
-                }
-                else { 
-                    code = pwd.removeDirectory(remove_name);
-                }
 
-                if (code === 0) {
-                    break;
-                }
-                else if (code === 1) {
-                    /** TODO: Here, we would want to check the global scope in case of absolute filepaths. */
-                    return `Error: ${command.name}: Cannot remove ${remove_name}: No such file/directory`;
-                }
-                else if (code === 2) {
-                    return `Error: ${command.name}: Cannot remove ${remove_name}: Is a \
-                        ${(command.name === CommandName.rm) ? "directory" : "file"}`;
-                }
-                else if (code === 3) {
-                    return `Error: ${command.name}: Failed to remove ${remove_name}: Directory not empty`
-                }
-                else {
-                    return `Error: ${command.name}: Undefined error`
+                const returnCode = (command.flags.has("r"))
+                    ? pwd.removeDirectoryRecursive(remove_name)
+                    : pwd.removeFile(remove_name);
+
+                
+                break;
+            }
+            case (CommandName.rmdir): {
+                if (command.parameters.length != 1) { return getError(command, `Removing multiple items not supported`); }
+                const removeName = command.parameters[0];
+                switch (pwd.removeDirectory(removeName)) {
+                    case 0:  break;
+                    case 1:  return getError(command, `Cannot remove ${removeName}: No such directory`);
+                    case 2:  return getError(command, `Cannot remove ${removeName}: Is a file`);
+                    default: return getError(command, `Undefined error`);
                 }
             }
             case (CommandName.exit): {
@@ -184,7 +167,9 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
         <div className='window terminal' onClick={() => { inputRef.current.focus(); }}>
             {output.map((line) => (
                 <>
-                    {(line.output_only) ? <></> : <Prompt server={server} user={line.user} pwd={line.pwd_str} />}
+                    {(line.output_only) 
+                        ? <></> 
+                        : <Prompt server={server} user={line.user} pwd={line.pwd_str} /> }
                     {line.content.split(dirColorChar).map((l, index) => {
                         return (
                             <span key={index} style={{color: (index % 2 == 1)?"#6262E0":"" }}>
@@ -229,9 +214,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                             ])
 
                             // bit hacky but i think this is the best way we can do this...
-                            if (input === "clear") {
-                                setOutput([]);
-                            }
+                            if (input === "clear") { setOutput([]); }
 
                             setInput("");
                             break;

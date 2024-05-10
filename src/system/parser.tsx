@@ -164,7 +164,7 @@ export class Validator {
         if (template == undefined) return get_error_command("Unknown command.");
 
         /** Verifying flags */
-        const cmd_flags = []
+        const cmd_flags: Set<string> = new Set();
         while (this.match(TokenKind.FLAG)) {
             let flag: string = this.prev().content;
             if (!isFlag(flag)) return get_error_command("Unexpected flag.");  // can never be too safe
@@ -177,7 +177,7 @@ export class Validator {
                 return get_error_command("Unexpected flag.");
             }
 
-            cmd_flags.push(flag);  // Gathering command flags here
+            cmd_flags.add(flag);  // Gathering command flags here
         }
 
         /** Verifying parameters */

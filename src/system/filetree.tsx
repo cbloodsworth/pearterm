@@ -4,19 +4,16 @@ class FileSystemNode {
     private children: FileSystemNode[];
 
     public filename: string;  // semantic filename or directory name
-    public filepath: string;  // full filepath from root
+    public filepath: string;  // absolute filepath from root
     public contents: string;
     public isDirectory: boolean; 
 
     constructor(parent: FileSystemNode | null, filename: string, isDirectory=false, contents='') {
-        this.parent = (parent) 
-            ? parent 
-            : this;
-        this.root = (this.parent.root)  // get the root from the parent
-            ? this.parent.root
-            : this;
-
+        this.parent = parent || this;
+        this.root = this.parent.root || this;  // get the root from the parent
         this.filename = filename;
+
+        // If this is root, its filepath and filename are the same
         if (parent === null) {
             this.filepath = this.filename;
         }
@@ -75,7 +72,7 @@ class FileSystemNode {
         return this.children.find((child) => child.getFilename() === filename) || null;
     }
 
-    private getAbsoluteFile(filename: string): FileSystemNode | undefined {
+    private getAbsoluteFile(filename: string): FileSystemNode | null {
         let curr = (filename.charAt(0) === '/')
             ? this.root
             : this
@@ -85,7 +82,7 @@ class FileSystemNode {
             console.log(file);
             const child = curr.getChildFile(file);
             if (child) { curr = child; }
-            else { return undefined; }
+            else { return null; }
         }
 
         return curr;
@@ -111,9 +108,7 @@ class FileSystemNode {
 
     /** Helper function to abstract out functionality of addDirectory and addFile */
     addItem(filename: string, isDirectory: boolean, content=''): FileSystemNode {
-        if (!this.isDirectory) {
-            throw Error('Can only add files to directories');
-        }
+        if (!this.isDirectory) { throw Error('Can only add files to directories'); }
         const result = new FileSystemNode(this, filename, isDirectory, content);
         this.children.push(result)
         return result;
@@ -128,7 +123,7 @@ class FileSystemNode {
      */
     removeFile(filename: string) {
         const file = this.getFileSystemNode(filename);
-        if (file === undefined) { return 1; }
+        if (file === null) { return 1; }
         if (file.isDirectory) { return 2; }
 
         const remove_index = this.children.indexOf(file);
@@ -148,7 +143,7 @@ class FileSystemNode {
      */
     removeDirectory(filename: string) {
         const file = this.getFileSystemNode(filename);
-        if (file == undefined) { return 1; }
+        if (file === null) { return 1; }
         if (!file.isDirectory) { return 2; }
         if (file.getChildren().length != 0) { return 3; }
 
@@ -166,7 +161,7 @@ class FileSystemNode {
      */
     removeDirectoryRecursive(filename: string) {
         const to_remove = this.getFileSystemNode(filename);
-        if (to_remove === undefined) { return 1; }
+        if (to_remove === null) { return 1; }
 
         // While remove has children
         while (to_remove.children.length > 0) {

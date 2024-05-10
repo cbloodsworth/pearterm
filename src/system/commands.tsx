@@ -34,7 +34,7 @@ export enum CommandName {
 
 export interface Command {
     name: string;
-    flags: string[];
+    flags: Set<string>;
     parameters: string[];
 }
 
