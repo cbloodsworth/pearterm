@@ -1,3 +1,9 @@
+interface FSResult {
+    err: string
+}
+
+const OK: FSResult = {err: ""};
+
 class FileSystemNode {
     private root: FileSystemNode;
     private parent: FileSystemNode | null;
@@ -27,6 +33,7 @@ class FileSystemNode {
         this.isDirectory = isDirectory;
         this.children = [];
 
+        // This would be a developer error
         if (this.contents.length > 0 && this.isDirectory) {
             throw Error('Directory cannot have file content.');
         }
@@ -117,51 +124,45 @@ class FileSystemNode {
     /**
      * Removes file from current scope.
      * @param filename 
-     * @returns 0 if completed, error code if not:
-     *          1 if file doesn't exist in current scope
-     *          2 if file is a directory
+     * @returns FSResult
      */
-    removeFile(filename: string) {
+    removeFile(filename: string): FSResult {
         const file = this.getFileSystemNode(filename);
-        if (file === null) { return 1; }
-        if (file.isDirectory) { return 2; }
+        if (file === null) { return {err: "File does not exist in current scope"}; }
+        if (file.isDirectory) { return {err: "File is a directory"}; }
 
         const remove_index = this.children.indexOf(file);
         this.children.splice(remove_index, 1);
 
-        return 0;
+        return OK;
     }
 
     /**
      * Removes empty director>ies, returns error code if contains content
      * Equivalent to unix's `rm`
      * @param filename 
-     * @returns 0 if completed, error code if not:
-     *          1 if file doesn't exist in current scope
-     *          2 if file is not a directory
-     *          3 if directory is not empty
+     * @returns FSResult
      */
-    removeDirectory(filename: string) {
+    removeDirectory(filename: string): FSResult {
         const file = this.getFileSystemNode(filename);
-        if (file === null) { return 1; }
-        if (!file.isDirectory) { return 2; }
-        if (file.getChildren().length != 0) { return 3; }
+        if (file === null) { return {err: `Failed to remove '${filename}': No such file or directory`}; }
+        if (!file.isDirectory) { return {err: `Failed to remove '${filename}': Not a directory`}; }
+        if (file.getChildren().length != 0) { return {err: `Failed to remove '${filename}': Directory not empty`}; }
 
         const remove_index = this.children.indexOf(file);
         this.children.splice(remove_index, 1);
 
-        return 0;
+        return OK;
     }
 
     /**
      * Removes directory / file recursively. Equivalent to unix's `rm -rf`
      * @param filename 
-     * @returns 0 if completed, error code if not:
-     *          1 if file doesn't exist in current scope
+     * @returns FSResult
      */
-    removeDirectoryRecursive(filename: string) {
+    removeDirectoryRecursive(filename: string): FSResult {
         const to_remove = this.getFileSystemNode(filename);
-        if (to_remove === null) { return 1; }
+        if (to_remove === null) { return {err: `Failed to remove '${filename}': No such file or directory`}; }
 
         // While remove has children
         while (to_remove.children.length > 0) {
@@ -173,9 +174,8 @@ class FileSystemNode {
 
         const remove_index = this.children.indexOf(to_remove);
         this.children.splice(remove_index, 1);
-        console.log(`Removed ${filename}`);
 
-        return 0;
+        return OK;
     }
 }
 

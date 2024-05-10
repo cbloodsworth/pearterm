@@ -108,43 +108,43 @@ test('Remove empty directory', () => {
     expect(root.getChildren().length).toBe(0);
 });
 
-test('Remove directory returns 1 if doesnt exist', () => {
+test('Remove directory returns error if doesnt exist', () => {
     const root = createRootNode();
     let code = root.removeDirectory("does_not_exist");
-    expect(code).toBe(1);
+    expect(code.err.length).not.toBe(0);
 
     root.addDirectory("dir");
     code = root.removeDirectory("does_not_exist");
-    expect(code).toBe(1);
+    expect(code.err.length).not.toBe(0);
 });
 
-test('Remove directory returns 2 if directory is a file', () => {
+test('Remove directory returns error if directory is a file', () => {
     const root = createRootNode();
     const file = root.addFile("file");
 
     let code = root.removeDirectory("file");
-    expect(code).toBe(2);
+    expect(code.err.length).not.toBe(0);
     expect(root.getChildren().length).toBe(1);
 });
 
-test('Remove directory returns 3 if directory has files', () => {
+test('Remove directory returns error if directory has files', () => {
     const root = createRootNode();
     const dir = root.addDirectory("dir");
     dir.addFile("file.txt", "content of some kind");
 
     let code = root.removeDirectory("dir");
-    expect(code).toBe(3);
+    expect(code.err.length).not.toBe(0);
     expect(root.getChildren().length).toBe(1);
 });
 
-test('Remove directory recursive returns 1 if doesnt exist', () => {
+test('Remove directory recursive returns error if doesnt exist', () => {
     const root = createRootNode();
     let code = root.removeDirectoryRecursive("does_not_exist");
-    expect(code).toBe(1);
+    expect(code.err.length).not.toBe(0);
 
     root.addDirectory("dir");
     code = root.removeDirectoryRecursive("does_not_exist");
-    expect(code).toBe(1);
+    expect(code.err.length).not.toBe(0);
 });
 
 test('Modify filename', () => {
@@ -207,22 +207,22 @@ test('Get only directories', () => {
     expect(root.getFiles()).toStrictEqual(["a.md", "b.md", "c.md", "d.md"]);
 });
 
-test('Remove file returns 1 if doesnt exist', () => {
+test('Remove file returns error if doesnt exist', () => {
     const root = createRootNode();
     let code = root.removeFile("does_not_exist");
-    expect(code).toBe(1);
+    expect(code.err.length).not.toBe(0);
 
     root.addFile("file.txt");
     code = root.removeFile("does_not_exist");
-    expect(code).toBe(1);
+    expect(code.err.length).not.toBe(0);
 });
 
-test('Remove file returns 2 if file is a directory', () => {
+test('Remove file returns error if file is a directory', () => {
     const root = createRootNode();
     const dir = root.addDirectory("dir");
 
     let code = root.removeFile("dir");
-    expect(code).toBe(2);
+    expect(code.err.length).not.toBe(0);
     expect(root.getChildren().length).toBe(1);
 });
 

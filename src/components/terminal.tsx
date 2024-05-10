@@ -44,24 +44,16 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
     useEffect(() => { inputRef.current.focus(); }, []);
 
     /** Has side effects. Validates and evaluates command given current context, and returns output. */
-    const evaluate_command = (tokens: Token[]): string => {
-        if (tokens.length == 0) {
-            return "";
-        }
-
-        const command = new Validator(tokens).parse()
-        
+    const evaluate_command = (command: Command): string => {
         // Checking for syntax errors. Errored command parses always start with "SyntaxError" and then the reason for error
-        if (command.name.startsWith("Syntax Error:")) {
-            return command.name; 
-        }
+        if (command.name.startsWith("Syntax Error:")) { return command.name; }
 
         switch (command.name) {
             case (CommandName.ls): {
                 // Sort output alphabetically and filter out hidden files if necessary
                 const children = pwd.getChildren()
                     .sort((a,b) => a.filename.localeCompare(b.filename))
-                    .filter((child) => child.filename[0] !== '.' || command.flags.indexOf("a") !== -1)
+                    .filter((child) => child.filename[0] !== '.' || command.flags.has("a"))
 
                 const filenames = children.map((child) => {
                     let displayName = child.filename;
@@ -123,34 +115,35 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
             }
             case (CommandName.rm): {
                 if (command.parameters.length != 1) { return getError(command, `Removing multiple items not supported`); }
-                const remove_name = command.parameters[0];
+                const removeName = command.parameters[0];
 
-                const returnCode = (command.flags.has("r"))
-                    ? pwd.removeDirectoryRecursive(remove_name)
-                    : pwd.removeFile(remove_name);
+                let result;
+                if (command.flags.has("r")) { result = pwd.removeDirectoryRecursive(removeName); }
+                else { result = pwd.removeFile(removeName); }
 
-                
+                if (result.err) return getError(command, result.err);
                 break;
             }
             case (CommandName.rmdir): {
                 if (command.parameters.length != 1) { return getError(command, `Removing multiple items not supported`); }
                 const removeName = command.parameters[0];
-                switch (pwd.removeDirectory(removeName)) {
-                    case 0:  break;
-                    case 1:  return getError(command, `Cannot remove ${removeName}: No such directory`);
-                    case 2:  return getError(command, `Cannot remove ${removeName}: Is a file`);
-                    default: return getError(command, `Undefined error`);
-                }
+
+                const result = pwd.removeDirectory(removeName);
+                if (result.err) return getError(command, result.err);
+                
+                break;
             }
+
             case (CommandName.exit): {
                 window.close();
                 break;
             }
+
             case (CommandName.echo): {
-                return command.parameters.join(" ");
+                return command.parameters.join(" ");  // this might be really naive tbh
             }
             case (CommandName.debug): {
-                let debugString = pwd.root.filepath  // modify this to print arbitrary output on using "debug"
+                const debugString = pwd.root.filepath  // modify this to print arbitrary output on using "debug"
                 return debugString;
             }
             case (""): {
@@ -200,7 +193,11 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
 
                             historyIndex.current = -1;
 
-                            const result = evaluate_command(new Tokenizer(input).tokenize());
+                            // If input is empty, result is empty string.
+                            const result = (input.length === 0)
+                                ? ""
+                                : evaluate_command(new Validator(new Tokenizer(input).tokenize()).parse());
+
                             setCommandHistory([
                                 input,
                                 ...commandHistory
@@ -219,6 +216,8 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                             setInput("");
                             break;
                         }
+
+                        // Most terminals support Ctrl+L for clearing
                         case "l": {
                             if (event.ctrlKey) {
                                 event.preventDefault();
@@ -227,35 +226,39 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, changeDir, rootFS }) => 
                             break;
                         }
 
+                        // We eventually want tab completion. God help me
                         case "Tab": {
                             event.preventDefault();
-
+                            // uhhh do something eventually
                             break;
                         }
 
+                        // Set input to previous command entered
                         case "ArrowUp": {
                             event.preventDefault();
                             if (historyIndex.current < commandHistory.length - 1) {
                                 historyIndex.current++;
                                 setInput(commandHistory[historyIndex.current]);
                             }
-                            console.log(historyIndex.current);
                             break;
                         }
+
+                        // Set input to next command entered
                         case "ArrowDown": {
                             event.preventDefault();
-                            // Remember: here -1 means we're already at the most current line in history
                             if (historyIndex.current >= 0) {
                                 historyIndex.current--;
                                 setInput(commandHistory[historyIndex.current] || "");
                             }
+
+                            // No more commands in history
                             else if (historyIndex.current === -1) {
                                 setInput("");
                             }
-                            console.log(historyIndex.current);
                             break;
                         }
                         default: {
+                            break;  // I don't exactly know what to do here
                         }
                     }
                 }}
