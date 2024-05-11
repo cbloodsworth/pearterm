@@ -5,9 +5,9 @@ interface FSResult {
 const OK: FSResult = {err: ""};
 
 class FileSystemNode {
-    private root: FileSystemNode;
-    private parent: FileSystemNode | null;
-    private children: FileSystemNode[];
+    public root: FileSystemNode;
+    public parent: FileSystemNode | null;
+    public children: FileSystemNode[];
 
     public filename: string;  // semantic filename or directory name
     public filepath: string;  // absolute filepath from root
@@ -37,11 +37,6 @@ class FileSystemNode {
         if (this.contents.length > 0 && this.isDirectory) {
             throw Error('Directory cannot have file content.');
         }
-    }
-
-    /** Sets filename. Probably used for the mv command, if that ever gets implemented. */
-    setFilename(filename: string) {
-        this.filename = filename;
     }
 
     /** Returns current filename */
@@ -119,6 +114,16 @@ class FileSystemNode {
         const result = new FileSystemNode(this, filename, isDirectory, content);
         this.children.push(result)
         return result;
+    }
+
+    /** Writes content to a file, creating it if it doesn't exist. **/
+    writeTo(filename: string, content: string): FSResult {
+        const file = this.getFileSystemNode(filename);
+
+        if (!file) { return {err: "No such file found"}; }
+
+        file.contents = content;
+        return OK;
     }
 
     /**

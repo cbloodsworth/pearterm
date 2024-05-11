@@ -9,6 +9,7 @@ const get_empty_command = (): Command => {
     return { name:"", flags:[], parameters:[] };
 }
 
+// This is probably not the best, most robust way to do this....
 const isFlag = (raw_token: string) => {
     return raw_token.length >= 2 && raw_token[0] === '-';
 }
@@ -40,7 +41,7 @@ export class Scanner {
     lex = (): string[] | undefined => {
         const scope: string[] = [];
         while (this.hasNext()) {
-            let curr = this.getNext();
+            const curr = this.getNext();
             switch (curr) {
                 case ('\''): // Single quote
                 case ('"'):  // Double quote
@@ -72,6 +73,7 @@ export class Scanner {
             this.current++;
         }
         this.advance();
+        console.log(this.raw_tokens)
         return this.raw_tokens;
     }
 }
@@ -83,11 +85,9 @@ export class Tokenizer {
 
     constructor(raw_content: string) {
         this.raw_tokens = (new Scanner(raw_content)).lex();
-        console.log(this.raw_tokens)
         this.tokens = [];
         this.current = 0;
     }
-
 
     next(): Token {
         if (this.current >= this.raw_tokens.length) {
@@ -96,15 +96,18 @@ export class Tokenizer {
 
         const token = this.raw_tokens[this.current++];
 
-        if (token in CommandName) {
-            return { kind: TokenKind.COMMAND, content: token };
-        }
-        else if (isFlag(token)) {
-            return { kind: TokenKind.FLAG, content: token };
-        }
-        else {
-            return { kind: TokenKind.PARAMETER, content: token };
-        }
+
+        // If this matches a commandname and we're at the first, it's a command
+        if (token in CommandName && this.current === 1) { return { kind: TokenKind.COMMAND, content: token }; }
+
+        // Otherwise, let's check for flags
+        else if (isFlag(token)) { return { kind: TokenKind.FLAG, content: token }; }
+
+        // This is for redirects
+        else if (token === ">") { return { kind: TokenKind.REDIRECT, content: token } }
+
+        // We assume anything past this is a parameter.
+        else { return { kind: TokenKind.PARAMETER, content: token }; }
     }
 
     tokenize(): Token[] {
@@ -112,7 +115,7 @@ export class Tokenizer {
             const curr = this.next();
             this.tokens.push(curr);
 
-            if (curr.kind == TokenKind.EOF) { break; }
+            if (curr.kind === TokenKind.EOF) { break; }
         }
         return this.tokens;
     }
@@ -194,6 +197,11 @@ export class Validator {
         if (this.match(TokenKind.EOF)) {
             return { name: cmd_name, flags: cmd_flags, parameters: cmd_params };
         }
+        // Could be a redirect (example: ls > list.txt)
+        else if (this.match(TokenKind.REDIRECT)) {
+            // Currently, this will redirect to the first file specified after the redirect symbol
+            return { name: cmd_name, flags: cmd_flags, parameters: cmd_params, redirectTo: this.prev().content};
+        }
         else {
             return get_error_command("Unexpected token placement. (Misplaced flag?)");
         }
@@ -209,5 +217,6 @@ export enum TokenKind {
     COMMAND,
     FLAG,
     PARAMETER,
+    REDIRECT,
     EOF
 }

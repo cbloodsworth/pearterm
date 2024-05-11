@@ -20,7 +20,7 @@ const App: React.FC = () => {
   /** TODO: Fix this down the line to not just choose the first in the array,
    *          it should be chosen off some other criteria (name === "main"?)
    */
-  const [pwd, changeDir] = useState<FileSystemNode>(rootFS.getChildren()[0]);
+  const [pwd, setPwd] = useState<FileSystemNode>(rootFS.getChildren()[0]);
 
   return (
     <>
@@ -28,11 +28,11 @@ const App: React.FC = () => {
         tabLabels={tabDirs}
         tabThumbnails={tabThumbnails}
         pwd={pwd}
-        changeDir={changeDir}
+        setPwd={setPwd}
       />
       <View
         pwd={pwd}
-        changeDir={changeDir}
+        setPwd={setPwd}
         rootFS={rootFS}
       />
     </>

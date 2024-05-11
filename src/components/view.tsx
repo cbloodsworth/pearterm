@@ -8,17 +8,17 @@ import FileSystemNode from '../system/filetree';
 
 interface ViewProps {
     pwd: FileSystemNode;
-    changeDir: (dir: FileSystemNode) => void;
+    setPwd: (dir: FileSystemNode) => void;
     rootFS: FileSystemNode;
 }
 
-const View: React.FC<ViewProps> = ({ pwd, changeDir, rootFS }) => {
+const View: React.FC<ViewProps> = ({ pwd, setPwd, rootFS }) => {
     return (
         <div className='view'>
             <Terminal
                 user='default.user'
                 pwd={pwd}
-                changeDir={changeDir}
+                setPwd={setPwd}
                 rootFS={rootFS}
             />
             <Page pageName={pwd.filename} />

@@ -7,10 +7,10 @@ interface TabListProps {
     tabLabels: string[];
     tabThumbnails: string;
     pwd: FileSystemNode;
-    changeDir: (dir: FileSystemNode) => void;
+    setPwd: (dir: FileSystemNode) => void;
 }
 
-const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, pwd, changeDir }) => {
+const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, pwd, setPwd }) => {
     return (
         <div className='tabList'>
             <Tab
@@ -18,7 +18,7 @@ const TabList: React.FC<TabListProps> = ({ tabLabels, tabThumbnails, pwd, change
                 label={"terminal@"+pwd.getFilename()}
                 thumbnail={tabThumbnails}
                 isSelected={true} // fix later
-                onClick={() => changeDir(pwd)}
+                onClick={() => setPwd(pwd)}
             />
         </div>
     );
