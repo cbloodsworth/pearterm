@@ -46,6 +46,11 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
         setOutput([getBasicLine()]); 
     }
 
+    const updateInputField = (value: string) => {
+        output[output.length - 1].content = value;
+        setOutput([...output]);
+    }
+
     return (
         <div className='window terminal' onClick={() => { inputRef.current.focus(); }}>
             {output.map((line, index) => (
@@ -73,8 +78,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                 onChange={ 
                     event => {
                         setInput(event.target.value);
-                        output[output.length - 1].content = event.target.value;
-                        setOutput([...output])
+                        updateInputField(event.target.value);
                     }
                 }
                 onKeyDown={event => {
@@ -141,9 +145,11 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                         // Set input to previous command entered
                         case "ArrowUp": {
                             event.preventDefault();
+                            console.log(historyIndex.current)
                             if (historyIndex.current < commandHistory.length - 1) {
                                 historyIndex.current++;
                                 setInput(commandHistory[historyIndex.current]);
+                                updateInputField(commandHistory[historyIndex.current]);
                             }
                             break;
                         }
@@ -151,14 +157,17 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                         // Set input to next command entered
                         case "ArrowDown": {
                             event.preventDefault();
+                            console.log(historyIndex.current)
                             if (historyIndex.current >= 0) {
                                 historyIndex.current--;
                                 setInput(commandHistory[historyIndex.current] || "");
+                                updateInputField(commandHistory[historyIndex.current] || "");
                             }
 
                             // No more commands in history
                             else if (historyIndex.current === -1) {
                                 setInput("");
+                                updateInputField("");
                             }
                             break;
                         }
