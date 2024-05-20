@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 import Prompt from './prompt'
+import BlinkingCursor from './cursor.tsx'
 import { Validator, Tokenizer, Token, TokenKind } from "../system/parser"
 import { Command, CommandName } from "../system/commands"
 
@@ -28,26 +29,26 @@ interface Line {
 
 const server = 'portfolio';
 
-/**
- * Returns formatted command error, given the name and associated error.
- */
-const getError = (command: Command, error: string): string => {
-    return `Error: ${command.name}: ${error}`;
-}
-
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
-    const [input, setInput] = useState("");
-    const [output, setOutput] = useState<Line[]>([]);
-    const [commandHistory, setCommandHistory] = useState<string[]>([]);
-
     const historyIndex = useRef(-1);
     const inputRef = useRef();
 
     useEffect(() => { inputRef.current.focus(); }, []);
 
+    const getBasicLine = (): Line => { return {server, user, pwd_str: pwd.filename, content: "", output_only: false}; }
+
+    const [input, setInput] = useState("");
+    const [output, setOutput] = useState<Line[]>([getBasicLine()]);
+    const [commandHistory, setCommandHistory] = useState<string[]>([]);
+    const [cursorIndex, setCursorIndex] = useState<number>(0);
+    const clearTerminal = () => { 
+        setInput("");
+        setOutput([getBasicLine()]); 
+    }
+
     return (
         <div className='window terminal' onClick={() => { inputRef.current.focus(); }}>
-            {output.map((line) => (
+            {output.map((line, index) => (
                 <>
                     {(line.output_only) 
                         ? <></> 
@@ -59,26 +60,29 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                             </span>
                         );
                     })}
+                    {index==output.length-1 ? <BlinkingCursor/> : <></>}
                     <div></div>
                 </>
             ))}
             
-            <Prompt
-                server={server}
-                user={user}
-                pwd={pwd.filename}
-            />
             <input
                 ref={inputRef}
                 type='text'
                 value={input}
                 className='terminalInput'
-                onChange={event => setInput(event.target.value)}
+                onChange={ 
+                    event => {
+                        setInput(event.target.value);
+                        output[output.length - 1].content = event.target.value;
+                        setOutput([...output])
+                    }
+                }
                 onKeyDown={event => {
                     switch (event.key) {
                         case "Enter": {
-                            const inputLine: Line = {server, user, pwd_str: pwd.filename, content: input, output_only: false}
-                            const newOutput: Line = {server, user, pwd_str: pwd.filename, content: "", output_only: true};
+                            const inputLine: Line = {...getBasicLine(), content: input};
+                            const newOutput: Line = {...getBasicLine(), content: "", output_only: true}
+                            //{server, user, pwd_str: pwd.filename, content: "", output_only: true};
 
                             historyIndex.current = -1;
 
@@ -95,20 +99,24 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                                 input,
                                 ...commandHistory
                             ])
-                            newOutput.content += result;
 
+                            // If we're redirecting, write the result to a file
                             if (command.redirectTo) {
-                                pwd.writeTo(command.redirectTo, result);
+                                const redirectResult = pwd.writeTo(command.redirectTo, result);
+                                if (redirectResult.err) { newOutput.content += redirectResult.err; }
+                            }
+                            else {
+                                newOutput.content += result;
                             }
 
                             setOutput([
                                 ...output,
-                                inputLine,
-                                newOutput
+                                newOutput,
+                                getBasicLine()
                             ])
 
                             // bit hacky but i think this is the best way we can do this...
-                            if (input === "clear") { setOutput([]); }
+                            if (input === "clear") { clearTerminal(); }
 
                             setInput("");
                             break;
@@ -118,7 +126,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                         case "l": {
                             if (event.ctrlKey) {
                                 event.preventDefault();
-                                setOutput([]);
+                                clearTerminal();
                             }
                             break;
                         }

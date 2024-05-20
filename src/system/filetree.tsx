@@ -120,9 +120,9 @@ class FileSystemNode {
     writeTo(filename: string, content: string): FSResult {
         const file = this.getFileSystemNode(filename);
 
-        if (!file) { return {err: "No such file found"}; }
+        if (!file) { this.addFile(filename, content); }
+        else { file.contents = content; }
 
-        file.contents = content;
         return OK;
     }
 

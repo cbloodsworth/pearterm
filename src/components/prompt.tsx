@@ -11,9 +11,9 @@ interface PromptProps {
 const Prompt: React.FC<PromptProps> = ({ server, user, pwd}) => {
     return (
         <>
-            <span style={{ color: '#2DE02D' }}> {user}@{server}</span>
+            <span style={{ color: '#2DE02D' }}>{user}@{server}</span>
             <span >: </span>
-            <span style={{ color: '#6262E0' }}> {pwd} </span>
+            <span style={{ color: '#6262E0' }}>{pwd} </span>
             <span >$ </span>
         </>
     );

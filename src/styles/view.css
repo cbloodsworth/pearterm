@@ -31,7 +31,7 @@
     left: 1vw;
     background-color: #030303;
     border: 1px solid green;
-    white-space: pre-line;
+    white-space: pre;
 }
 
 .window.page {
@@ -46,6 +46,6 @@
     padding: 0px;
     background-color: transparent;
     caret-color: white;
-    font-size: 0.9rem;
+    font-size: 0rem;
     font-family: 'JetBrainsMono';
 }

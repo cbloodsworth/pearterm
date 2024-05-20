@@ -57,6 +57,7 @@ export class Scanner {
                         }
                         this.current++; 
                     }
+                    this.current--;
                     break;
                 }
                 case (' '):  // Split on spaces by default
@@ -200,7 +201,13 @@ export class Validator {
         // Could be a redirect (example: ls > list.txt)
         else if (this.match(TokenKind.REDIRECT)) {
             // Currently, this will redirect to the first file specified after the redirect symbol
-            return { name: cmd_name, flags: cmd_flags, parameters: cmd_params, redirectTo: this.prev().content};
+            if (this.match(TokenKind.PARAMETER)) {
+                return { name: cmd_name, flags: cmd_flags, parameters: cmd_params, redirectTo: this.prev().content};
+            }
+            else {
+                // I actually don't know if this error message would ever get used.
+                return get_error_command("Unexpected token after redirect (expected parameter.)");
+            }
         }
         else {
             return get_error_command("Unexpected token placement. (Misplaced flag?)");
