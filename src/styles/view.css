@@ -32,6 +32,8 @@
     background-color: #030303;
     border: 1px solid green;
     white-space: pre;
+    text-wrap: wrap;
+    font-variant-ligatures: none;
 }
 
 .window.page {
