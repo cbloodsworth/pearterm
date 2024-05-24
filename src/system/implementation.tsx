@@ -1,3 +1,4 @@
+import { TerminalEnvironment } from "../components/terminal.tsx";
 import { Command, CommandName } from "../system/commands"
 import FileSystemNode from "../system/filetree.tsx"
 
@@ -15,7 +16,11 @@ const getError = (command: Command, error: string): string => {
  * Performs some actions alongside returning output -- this could be changing
  *  the filesystem, moving the current directory, etc
  */
-export const evaluateCommand = (command: Command, pwd: FileSystemNode, setPwd: (dir: FileSystemNode) => void): string => {
+export const evaluateCommand = (command: Command, 
+                                pwd: FileSystemNode, 
+                                setPwd: (dir: FileSystemNode) => void, 
+                                currentEnvironment: TerminalEnvironment,
+                                modifyEnvironment: (environment: TerminalEnvironment) => void) => {
     switch (command.name) {
         case (CommandName.ls): {
             // Sort output alphabetically and filter out hidden files if necessary
@@ -49,7 +54,10 @@ export const evaluateCommand = (command: Command, pwd: FileSystemNode, setPwd: (
 
                 if (dir === null) { return getError(command, `No such file or directory`); }
                 else if (!dir.isDirectory) { return getError(command, `${destName} is not a directory`); }
-                else { setPwd(dir); }
+                else { 
+                    modifyEnvironment({ ...currentEnvironment, dir: dir.filename});
+                    setPwd(dir); 
+                }
             }
             else { return getError(command, `Too many parameters.`) }
             break;
