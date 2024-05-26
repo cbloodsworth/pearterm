@@ -13,6 +13,7 @@ import { evaluateCommand } from '../system/implementation';
 
 // CSS Styling
 import '../styles/view.css';
+import FormattedContent from './formattedContent.tsx';
 
 export interface TerminalEnvironment {
     server: string;
@@ -115,7 +116,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
             {displayHistory.map((displayLine) => (
                 <>
                     {displayLine.environment ? <Prompt environment={displayLine.environment}/> : <></> }
-                    <TerminalContent content={displayLine.content}/>
+                    <TerminalContent content={displayLine.content} formatted={!displayLine.environment}/>
                     <div></div>
                 </>
             ))}
