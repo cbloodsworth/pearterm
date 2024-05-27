@@ -1,8 +1,7 @@
 import { TerminalEnvironment } from "../components/terminal.tsx";
 import { Command, CommandName } from "../system/commands"
 import FileSystemNode from "../system/filetree.tsx"
-
-export const dirColorChar = '\u1242';  // we assume that this won't be input by the user....
+import { getColorCode } from "./formatContentParser.tsx";
 
 /**
  * Returns formatted command error, given the name and associated error.
@@ -35,7 +34,10 @@ export const evaluateCommand = (command: Command,
                 if (/\s/.test(displayName)) { displayName = "'"+displayName+"'"; }
                 
                 // This is for coloring logic. (Directories vs files)
-                if (child.isDirectory) { displayName = dirColorChar+displayName+dirColorChar }
+                if (child.isDirectory) { 
+                    displayName = currentEnvironment.termColors.dirColor + displayName
+                                  + currentEnvironment.termColors.default 
+                }
 
                 return displayName;
             });
@@ -136,8 +138,18 @@ export const evaluateCommand = (command: Command,
             return command.parameters.join(" ");  // this might be really naive tbh
         }
         case (CommandName.debug): {
-            pwd.addFile("a.txt", "Content!\nContent!\nContent!");
-            const debugString = "Added file a.txt";
+            let debugString;
+            if (false) {
+                debugString = "Added file a.txt";
+                pwd.addFile("a.txt", "Content!\nContent!\nContent!");
+            }
+            else {
+                currentEnvironment.termColors.dirColor = getColorCode(Math.floor(Math.random() * 256))!;
+                currentEnvironment.termColors.default = getColorCode(Math.floor(Math.random() * 256))!;
+                currentEnvironment.termColors.serverColor = getColorCode(Math.floor(Math.random() * 256))!;
+                modifyEnvironment({...currentEnvironment});
+                debugString = "Changed colors!";
+            }
             return debugString;
         }
         case (""): { break; }

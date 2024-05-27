@@ -10,15 +10,22 @@ import FileSystemNode from '../system/filetree';
 import { Validator, Tokenizer } from "../system/parser"
 import { Command } from "../system/commands"
 import { evaluateCommand } from '../system/implementation';
+import { getColorCode } from '../system/formatContentParser.tsx';
 
 // CSS Styling
 import '../styles/view.css';
-import FormattedContent from './formattedContent.tsx';
+
+interface TerminalColors {
+    'default': string;
+    'dirColor': string;
+    'serverColor': string;
+}
 
 export interface TerminalEnvironment {
     server: string;
     user: string;
     dir: string;
+    termColors: TerminalColors;
 }
 
 interface TerminalProps {
@@ -56,7 +63,12 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
     const [currentEnvironment, modifyEnvironment] = useState<TerminalEnvironment>({
         server: server,
         user: user,
-        dir: pwd.filename
+        dir: pwd.filename,
+        termColors: {
+            default: getColorCode(255)!,
+            dirColor: getColorCode(63)!,
+            serverColor: getColorCode(10)!
+        }
     });
 
     // For storing what the user is actively typing. 

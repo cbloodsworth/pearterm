@@ -6,16 +6,15 @@ def format_json_line(i, r, g, b):
     hex_idx = hex(i)[2:]
     hex_idx = hex_idx if len(hex_idx) == 2 else '0'+hex_idx
 
-    return f'  "{i}": "#{hex_string}",'
+    return '  "'+hex_idx+'": {color: "#'+hex_string+'},'
 
-print("{")
 i = 16
 for r in range(55, 256, 40):
-    if (r == 0): r = 55
+    if (r == 55): r = 0 
     for g in range(55, 256, 40):
-        if (g == 0): g = 55
+        if (g == 55): g = 0
         for b in range(55, 256, 40):
-            if (b == 0): b = 55
+            if (b == 55): b = 0
             print(format_json_line(i, r, g, b))
             i += 1
 

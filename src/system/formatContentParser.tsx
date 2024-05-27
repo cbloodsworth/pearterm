@@ -39,7 +39,12 @@ export const getColorCode = (colorCode: string | number): string | null => {
         }
     }
     // Must be number, then, which is in decimal
-    else { colorCode = colorCode.toString(16); }
+    else { 
+        colorCode = colorCode.toString(16); 
+        while (colorCode.length < 2) {
+            colorCode = "0" + colorCode;
+        }
+    }
 
     // colorCode should be length 2, since only codes 00-FF are supported
     if (colorCode.length != 2) return null;
