@@ -1,7 +1,7 @@
+import { TerminalEnvironment } from "../components/terminal.tsx";
 import { Command, CommandName } from "../system/commands"
 import FileSystemNode from "../system/filetree.tsx"
-
-export const dirColorChar = '\u1242';  // we assume that this won't be input by the user....
+import { getColorCode } from "./formatContentParser.tsx";
 
 /**
  * Returns formatted command error, given the name and associated error.
@@ -15,7 +15,11 @@ const getError = (command: Command, error: string): string => {
  * Performs some actions alongside returning output -- this could be changing
  *  the filesystem, moving the current directory, etc
  */
-export const evaluateCommand = (command: Command, pwd: FileSystemNode, setPwd: (dir: FileSystemNode) => void): string => {
+export const evaluateCommand = (command: Command, 
+                                pwd: FileSystemNode, 
+                                setPwd: (dir: FileSystemNode) => void, 
+                                currentEnvironment: TerminalEnvironment,
+                                modifyEnvironment: (environment: TerminalEnvironment) => void) => {
     switch (command.name) {
         case (CommandName.ls): {
             // Sort output alphabetically and filter out hidden files if necessary
@@ -30,7 +34,10 @@ export const evaluateCommand = (command: Command, pwd: FileSystemNode, setPwd: (
                 if (/\s/.test(displayName)) { displayName = "'"+displayName+"'"; }
                 
                 // This is for coloring logic. (Directories vs files)
-                if (child.isDirectory) { displayName = dirColorChar+displayName+dirColorChar }
+                if (child.isDirectory) { 
+                    displayName = currentEnvironment.termColors.dirColor + displayName
+                                  + currentEnvironment.termColors.default 
+                }
 
                 return displayName;
             });
@@ -49,7 +56,10 @@ export const evaluateCommand = (command: Command, pwd: FileSystemNode, setPwd: (
 
                 if (dir === null) { return getError(command, `No such file or directory`); }
                 else if (!dir.isDirectory) { return getError(command, `${destName} is not a directory`); }
-                else { setPwd(dir); }
+                else { 
+                    modifyEnvironment({ ...currentEnvironment, dir: dir.filename});
+                    setPwd(dir); 
+                }
             }
             else { return getError(command, `Too many parameters.`) }
             break;
@@ -128,8 +138,18 @@ export const evaluateCommand = (command: Command, pwd: FileSystemNode, setPwd: (
             return command.parameters.join(" ");  // this might be really naive tbh
         }
         case (CommandName.debug): {
-            pwd.addFile("a.txt", "Content!\nContent!\nContent!");
-            const debugString = "Added file a.txt";
+            let debugString;
+            if (false) {
+                debugString = "Added file a.txt";
+                pwd.addFile("a.txt", "Content!\nContent!\nContent!");
+            }
+            else {
+                currentEnvironment.termColors.dirColor = getColorCode(Math.floor(Math.random() * 256))!;
+                currentEnvironment.termColors.default = getColorCode(Math.floor(Math.random() * 256))!;
+                currentEnvironment.termColors.serverColor = getColorCode(Math.floor(Math.random() * 256))!;
+                modifyEnvironment({...currentEnvironment});
+                debugString = "Changed colors!";
+            }
             return debugString;
         }
         case (""): { break; }

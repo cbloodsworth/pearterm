@@ -1,21 +1,15 @@
 import React from 'react';
+import { TerminalEnvironment } from './terminal.tsx'
 import '../styles/tab.css';
+import FormattedContent from './formattedContent.tsx';
 
-
-interface PromptProps {
-    server: string;
-    user: string;
-    pwd: string;
-}
-
-const Prompt: React.FC<PromptProps> = ({ server, user, pwd}) => {
+const Prompt: React.FC<{environment: TerminalEnvironment}> = ({environment}) => {
     return (
-        <>
-            <span style={{ color: '#2DE02D' }}>{user}@{server}</span>
-            <span >: </span>
-            <span style={{ color: '#6262E0' }}>{pwd} </span>
-            <span >$ </span>
-        </>
+        <FormattedContent content={environment.termColors.serverColor+environment.user+"@"+environment.server+
+                                   environment.termColors.default+": "+
+                                   environment.termColors.dirColor+environment.dir+
+                                   environment.termColors.default+" $ " }
+        />
     );
 };
 

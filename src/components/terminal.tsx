@@ -1,16 +1,32 @@
 import React, { useEffect, useState, useRef } from 'react';
 
+// React components
 import Prompt from './prompt'
 import BlinkingCursor from './cursor.tsx'
-import { Validator, Tokenizer, Token, TokenKind } from "../system/parser"
-import { Command, CommandName } from "../system/commands"
+import TerminalContent from './terminalContent.tsx';
 
+// System utilities
+import FileSystemNode from '../system/filetree';
+import { Validator, Tokenizer } from "../system/parser"
+import { Command } from "../system/commands"
+import { evaluateCommand } from '../system/implementation';
+import { getColorCode } from '../system/formatContentParser.tsx';
+
+// CSS Styling
 import '../styles/view.css';
 
-import { evaluateCommand } from '../system/implementation';
-import { dirColorChar } from '../system/implementation';
+interface TerminalColors {
+    'default': string;
+    'dirColor': string;
+    'serverColor': string;
+}
 
-import FileSystemNode from '../system/filetree';
+export interface TerminalEnvironment {
+    server: string;
+    user: string;
+    dir: string;
+    termColors: TerminalColors;
+}
 
 interface TerminalProps {
     user: string;
@@ -19,75 +35,120 @@ interface TerminalProps {
     rootFS: FileSystemNode;
 }
 
-interface Line {
-    server: string;
-    user: string;
-    pwd_str: string;
+interface CommandHistoryEntry {
+    command: Command;
+    rawInput: string;
+    environment: TerminalEnvironment;
+}
+
+interface OutputHistoryEntry {
     content: string;
-    output_only?: boolean;
+    type: 'command-output' | 'error' | 'system-message' | 'no-output';
+}
+
+interface TerminalHistoryEntry {
+    inputCommand: CommandHistoryEntry;
+    outputResult: OutputHistoryEntry;
+}
+
+interface DisplayLine {
+    content: string;
+    environment?: TerminalEnvironment;
 }
 
 const server = 'portfolio';
 
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
-    const historyIndex = useRef(-1);
-    const inputRef = useRef();
+    // Current terminal metadata
+    const [currentEnvironment, modifyEnvironment] = useState<TerminalEnvironment>({
+        server: server,
+        user: user,
+        dir: pwd.filename,
+        termColors: {
+            default: getColorCode(255)!,
+            dirColor: getColorCode(63)!,
+            serverColor: getColorCode(10)!
+        }
+    });
 
-    useEffect(() => { inputRef.current.focus(); }, []);
-
-    const getBasicLine = (): Line => { return {server, user, pwd_str: pwd.filename, content: "", output_only: false}; }
-
+    // For storing what the user is actively typing. 
     const [input, setInput] = useState("");
-    const [output, setOutput] = useState<Line[]>([getBasicLine()]);
-    const [commandHistory, setCommandHistory] = useState<string[]>([]);
-    const [cursorIndex, setCursorIndex] = useState<number>(0);
+
+    // The useEffect ensures the input box in the terminal is always focused.
+    const inputBoxRef = useRef();
+    useEffect(() => { inputBoxRef.current.focus(); }, []);
+
+    // Storing previously entered commands and their results.
+    const [history, modifyHistory] = useState<TerminalHistoryEntry[]>([]);
+
+    // For up and down arrow key functionality (fetching previously entered commands)
+    const historyIndex = useRef(-1);
+
+    // Storage for lines as they are displayed in the terminal.
+    const [displayHistory, modifyDisplayHistory] = useState<DisplayLine[]>([]);
+
+    // Clears the terminal from buildup of command history.
+    // // TODO: This has the unintended side-effect of also clearing up and down arrow history
     const clearTerminal = () => { 
-        setInput("");
-        setOutput([getBasicLine()]); 
+        modifyDisplayHistory([]); 
     }
 
-    const updateInputField = (value: string) => {
-        output[output.length - 1].content = value;
-        setOutput([...output]);
+    /**
+     * Returns the maximum number of lines that can be shown at once in the terminal.
+     *  This will likely remain at the constant 23, as I don't expect to change
+     *  the terminal's font size.
+     *
+     * In the case that the font size changes, this function can do something
+     *  less trivial, like checking page zoom, or something.
+     */
+    const getMaxDisplayLines = () => {
+        return 23; 
+    }
+
+    /** Adds a terminal entry to the display history, while trimming if needed. */
+    const addToDisplayHistory = (entry: TerminalHistoryEntry) => {
+        const addition: DisplayLine[] = [];
+        addition.push({content: entry.inputCommand.rawInput, environment: entry.inputCommand.environment});
+
+        const outputLines = entry.outputResult.content
+            .split('\n')  // split on newlines
+            .filter((content) => (content !== ""))  // don't include blank content
+            .map((content) => {return {content: content}; }  // return in a format we expect
+        );
+        addition.push(...outputLines);
+
+        // Trim cutoff. Prevents the terminal from overflowing.
+        const cutoff = Math.max(0, displayHistory.length + addition.length - getMaxDisplayLines());
+
+        modifyDisplayHistory([...displayHistory, ...addition].slice(cutoff));
     }
 
     return (
-        <div className='window terminal' onClick={() => { inputRef.current.focus(); }}>
-            {output.map((line, index) => (
+        <div className='window terminal' onClick={() => { inputBoxRef.current.focus(); }}>
+            {displayHistory.map((displayLine) => (
                 <>
-                    {(line.output_only) 
-                        ? <></> 
-                        : <Prompt server={server} user={line.user} pwd={line.pwd_str} /> }
-                    {line.content.split(dirColorChar).map((l, index) => {
-                        return (
-                            <span key={index} style={{color: (index % 2 == 1)?"#6262E0":"" }}>
-                                {l}
-                            </span>
-                        );
-                    })}
-                    {index==output.length-1 ? <BlinkingCursor/> : <></>}
+                    {displayLine.environment ? <Prompt environment={displayLine.environment}/> : <></> }
+                    <TerminalContent content={displayLine.content} formatted={!displayLine.environment}/>
                     <div></div>
                 </>
             ))}
+
+            {/* Current user prompt. */}
+            <Prompt environment={currentEnvironment} />
+            <span>{input}</span><BlinkingCursor/>
+            <div></div>
             
             <input
-                ref={inputRef}
+                ref={inputBoxRef}
                 type='text'
                 value={input}
                 className='terminalInput'
                 onChange={ 
-                    event => {
-                        setInput(event.target.value);
-                        updateInputField(event.target.value);
-                    }
+                    event => { setInput(event.target.value); }
                 }
                 onKeyDown={event => {
                     switch (event.key) {
                         case "Enter": {
-                            const inputLine: Line = {...getBasicLine(), content: input};
-                            const newOutput: Line = {...getBasicLine(), content: "", output_only: true}
-                            //{server, user, pwd_str: pwd.filename, content: "", output_only: true};
-
                             historyIndex.current = -1;
 
                             // Parse!
@@ -97,27 +158,37 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                             // Otherwise, evaluate the command!
                             const result = (input.length === 0)
                                 ? ""
-                                : evaluateCommand(command, pwd, setPwd);
+                                : evaluateCommand(command, pwd, setPwd, currentEnvironment, modifyEnvironment);
 
-                            setCommandHistory([
-                                input,
-                                ...commandHistory
-                            ])
+                            const commandHistoryEntry: CommandHistoryEntry = 
+                                { command: command, rawInput: input, environment: {...currentEnvironment} };
+
+                            const outputHistoryEntry: OutputHistoryEntry = 
+                                { content: result, type: input.length === 0 ? 'no-output' : 'command-output' };
 
                             // If we're redirecting, write the result to a file
+                            //   and do some modification to the outputHistory object
                             if (command.redirectTo) {
                                 const redirectResult = pwd.writeTo(command.redirectTo, result);
-                                if (redirectResult.err) { newOutput.content += redirectResult.err; }
-                            }
-                            else {
-                                newOutput.content += result;
+                                if (redirectResult.err) { 
+                                    outputHistoryEntry.content = redirectResult.err;
+                                    outputHistoryEntry.type = 'error';
+                                }
+                                else {
+                                    // If redirecting, don't output result to terminal: just write it to file
+                                    outputHistoryEntry.type = 'no-output';
+                                }
                             }
 
-                            setOutput([
-                                ...output,
-                                newOutput,
-                                getBasicLine()
-                            ])
+                            const terminalHistoryEntry = { inputCommand: commandHistoryEntry, outputResult: outputHistoryEntry };
+
+                            // Add the newest command to the history
+                            modifyHistory([
+                                ...history,
+                                terminalHistoryEntry
+                            ]);
+
+                            addToDisplayHistory(terminalHistoryEntry);
 
                             // bit hacky but i think this is the best way we can do this...
                             if (input === "clear") { clearTerminal(); }
@@ -142,14 +213,18 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                             break;
                         }
 
+                        case "ArrowLeft":
+                        case "ArrowRight": {
+                            event.preventDefault();
+                            break;
+                        }
+
                         // Set input to previous command entered
                         case "ArrowUp": {
                             event.preventDefault();
-                            console.log(historyIndex.current)
-                            if (historyIndex.current < commandHistory.length - 1) {
+                            if (historyIndex.current < history.length - 1) {
                                 historyIndex.current++;
-                                setInput(commandHistory[historyIndex.current]);
-                                updateInputField(commandHistory[historyIndex.current]);
+                                setInput(history[history.length - 1 - historyIndex.current].inputCommand.rawInput);
                             }
                             break;
                         }
@@ -157,17 +232,14 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                         // Set input to next command entered
                         case "ArrowDown": {
                             event.preventDefault();
-                            console.log(historyIndex.current)
-                            if (historyIndex.current >= 0) {
+                            if (historyIndex.current > 0) {
                                 historyIndex.current--;
-                                setInput(commandHistory[historyIndex.current] || "");
-                                updateInputField(commandHistory[historyIndex.current] || "");
+                                setInput(history[history.length - 1 - historyIndex.current].inputCommand.rawInput || "");
                             }
 
                             // No more commands in history
-                            else if (historyIndex.current === -1) {
+                            else if (historyIndex.current === 0) {
                                 setInput("");
-                                updateInputField("");
                             }
                             break;
                         }
