@@ -10,15 +10,16 @@ import FileSystemNode from '../system/filetree';
 import { Validator, Tokenizer } from "../system/parser"
 import { Command } from "../system/commands"
 import { evaluateCommand } from '../system/implementation';
-import { getColorCode } from '../system/formatContentParser.tsx';
+import { getColorCode, getHTMLColorCode } from '../system/formatContentParser.tsx';
 
 // CSS Styling
 import '../styles/view.css';
 
 interface TerminalColors {
-    'default': string;
-    'dirColor': string;
-    'serverColor': string;
+    default: string;
+    background: string;
+    dirColor: string;
+    serverColor: string;
 }
 
 export interface TerminalEnvironment {
@@ -66,10 +67,13 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
         dir: pwd.filename,
         termColors: {
             default: getColorCode(255)!,
+            background: getHTMLColorCode(172).color,
             dirColor: getColorCode(63)!,
             serverColor: getColorCode(10)!
         }
     });
+
+    console.log(currentEnvironment.termColors.background);
 
     // For storing what the user is actively typing. 
     const [input, setInput] = useState("");
@@ -124,7 +128,9 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
     }
 
     return (
-        <div className='window terminal' onClick={() => { inputBoxRef.current.focus(); }}>
+        <div className='window terminal' 
+             style={{background: currentEnvironment.termColors.background}}
+             onClick={() => { inputBoxRef.current.focus(); }}>
             {displayHistory.map((displayLine) => (
                 <>
                     {displayLine.environment ? <Prompt environment={displayLine.environment}/> : <></> }

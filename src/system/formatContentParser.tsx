@@ -27,7 +27,7 @@ const ANSI_ESCAPE = "\\e[";
 const ANSI_DELIMETER = ";";
 const END_CODE = "m";
 
-export const getColorCode = (colorCode: string | number): string | null => {
+const convertToHex = (colorCode: string | number): string | null => {
     // Is it a string? Could be hex or decimal in that case
     if (typeof colorCode === 'string') {
         // Same deal here, but with 0x
@@ -49,8 +49,19 @@ export const getColorCode = (colorCode: string | number): string | null => {
     // colorCode should be length 2, since only codes 00-FF are supported
     if (colorCode.length != 2) return null;
 
+    return colorCode;
+}
+
+export const getHTMLColorCode = (colorCode: string | number): Record<string, string> => {
+    colorCode = convertToHex(colorCode) || colorCode;
+
+    return colorMap[colorCode] || null;
+}
+
+export const getColorCode = (colorCode: string | number): string | null => {
+    colorCode = convertToHex(colorCode) || colorCode;
+
     // If colorcode isn't valid, it won't be in the map (ex. 0xRR), return null
-    console.log(ANSI_ESCAPE+colorCode+END_CODE || null);
     return ANSI_ESCAPE+colorCode+END_CODE || null;
 }
 
