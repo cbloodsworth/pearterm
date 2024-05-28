@@ -67,7 +67,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
         dir: pwd.filename,
         termColors: {
             default: getColorCode(255)!,
-            background: getHTMLColorCode(172).color,
+            background: getHTMLColorCode(24).color,
             dirColor: getColorCode(63)!,
             serverColor: getColorCode(10)!
         }
