@@ -173,7 +173,7 @@ export class Validator {
             let flag: string = this.prev().content;
             if (!isFlag(flag)) return get_error_command("Unexpected flag.");  // can never be too safe
 
-            flag = flag.substring(flag.search(/[a-z]/));
+            flag = flag.substring(flag.search(/[a-zA-Z]/));
             if (flag === 'h' || flag === 'help') {
                 return { name: CommandName.help, flags: new Set([]), parameters: [cmd_name]};
             }
@@ -192,8 +192,8 @@ export class Validator {
         }
         if (template.params_expected.length != 0 
             && !(template.params_expected.includes(cmd_params.length))) {
-            return get_error_command(`Unexpected number of parameters: ${cmd_params.length}. 
-                                      Expected ${template.params_expected.join(" or ")} parameters.`);
+            return get_error_command(`Unexpected number of arguments: ${cmd_params.length}, `+
+                                     `Expected ${template.params_expected.join(" or ")}.`);
         }
 
         /** Verifying end of file as we expect */

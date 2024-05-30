@@ -56,10 +56,11 @@ export interface CommandTemplate {
     info?: CommandInformation;
 }
 
-const CMD_LS: CommandTemplate = { name: CommandName.ls, allowed_flags: ["l", "a"], params_expected:[0,1],
-    info: { usage: "ls [-la]... [FILE]...",
+const CMD_LS: CommandTemplate = { name: CommandName.ls, allowed_flags: ["l", "a", "A"], params_expected:[0,1],
+    info: { usage: "ls [OPTIONS]... [FILE]...",
             description: "List information about the FILEs (the current directory by default).\n"+
                          "\t-a\tdo not ignore entries starting with .\n"+
+                         "\t-A\tdo not ignore entries starting with ., except for . and ..\n"+
                          "\t-l\tuse a long listing format" }}
 const CMD_PWD: CommandTemplate = { name: CommandName.pwd, allowed_flags: [], params_expected:[0],
     info: { usage: "pwd",

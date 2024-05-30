@@ -55,11 +55,11 @@ export const evaluateCommand = (command: Command,
                 : pwd;
 
             if (!dir) { return getNoFileError(command, command.parameters.at(0)!); }
-            if (!dir.isDirectory) { return getError(command, `Is a`)}
+            if (!dir.isDirectory) { return getNotFileError(command, command.parameters.at(0)!)}
 
             const children = dir.getChildren()
                 .sort((a,b) => a.filename.localeCompare(b.filename))
-                .filter((child) => child.filename[0] !== '.' || command.flags.has("a"))
+                .filter((child) => child.filename[0] !== '.' || command.flags.has("a") || command.flags.has("A"))
 
             const filenames = children.map((child) => {
                 let displayName = child.filename;
@@ -76,17 +76,24 @@ export const evaluateCommand = (command: Command,
                 return displayName;
             });
 
-            return filenames.join('\u00A0\u00A0');  // add two spaces inbetween
+            // Scummy workaround until I can figure out how to actually represent "." and ".." in code
+            if (command.flags.has("a")) filenames.splice(0, 0,
+                termColors.primary.formatted + ".",
+                termColors.primary.formatted + ".." + termColors.default.formatted
+            );
+
+            return filenames.join('  ');  // add two spaces inbetween
         }
         case (CommandName.pwd): { return pwd.getFilepath(); }
         case (CommandName.cd): {
             // If no parameters, go to root
-            if (command.parameters.length == 0) { setPwd(pwd.root); }
-
+            if (command.parameters.length == 0) { 
+                modifyEnvironment({ ...currentEnvironment, dir: pwd.root.filename});
+                setPwd(pwd.root); 
+            }
             else if (command.parameters.length == 1) {
                 const destName = command.parameters[0];
-                const dir = (destName === "..") ? pwd.getParent() : pwd.getFileSystemNode(destName);
-
+                const dir = pwd.getFileSystemNode(destName);
                 if (dir === null) { return getNoFileError(command, destName); }
                 else if (!dir.isDirectory) { return getNotDirectoryError(command, destName); }
                 else { 

@@ -71,6 +71,9 @@ class FileSystemNode {
     }
 
     private getChildFile(filename: string): FileSystemNode | null {
+        // Temporary hack until I can figure out how to deal with "." and ".." nodes
+        if (filename === '.') return this;
+        if (filename === '..') return this.getParent();
         return this.children.find((child) => child.getFilename() === filename) || null;
     }
 
