@@ -68,7 +68,8 @@ export const evaluateCommand = (command: Command,
                 if (/\s/.test(displayName)) { displayName = "'"+displayName+"'"; }
                 
                 // This is for coloring logic. (Directories vs files)
-                if (child.isDirectory) { 
+                // Don't color if being redirected.
+                if (child.isDirectory && !command.redirectTo) { 
                     displayName = termColors.primary.formatted + displayName
                                   + termColors.default.formatted
                 }
@@ -82,7 +83,11 @@ export const evaluateCommand = (command: Command,
                 termColors.primary.formatted + ".." + termColors.default.formatted
             );
 
-            return filenames.join('  ');  // add two spaces inbetween
+            // If redirecting, do newlines. Otherwise, optimize for human readability
+            const delim = command.redirectTo
+                ? "\n"
+                : "  "
+            return filenames.join(delim);  // add two spaces inbetween
         }
         case (CommandName.pwd): { return pwd.getFilepath(); }
         case (CommandName.cd): {
@@ -127,9 +132,7 @@ export const evaluateCommand = (command: Command,
             return output;
         }
         case (CommandName.clear): {
-            // Implementation for this is currently outside of this function, in the onKeyDown event
-            // I couldn't think of a better way to do it ;-;
-            break;
+            return CONSTANTS.ESCAPE_CODES.RESET_TERM;
         }
         case (CommandName.touch): {
             const new_filename = command.parameters[0];
@@ -233,7 +236,7 @@ export const evaluateCommand = (command: Command,
         case (CommandName.help): {
             if (command.parameters.length === 0) {
                 const cmdList = Array.from(command_map, ([_, command]) => {return command.info!.usage}).sort().join("\n  ");
-                return `pearSH, version ${CONSTANTS.shellVersion}\n`+
+                return `pearSH, version ${CONSTANTS.SHELL_VERSION}\n`+
                        `Type 'help NAME' to find out more about the function 'NAME'.\n`+
                        `Alternatively, type 'NAME -h'.\n \n  `+
                        cmdList

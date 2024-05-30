@@ -71,12 +71,12 @@ interface DisplayLine {
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, setViewContent }) => {
     // Current terminal metadata
     const [currentEnvironment, modifyEnvironment] = useState<TerminalEnvironment>({
-        server: CONSTANTS.server,
+        server: CONSTANTS.SERVER,
         user: user,
         dir: pwd.filename,
     });
 
-    const [termColors, setTermColors] = useState<TerminalColors>(themes[CONSTANTS.defaultTheme]);
+    const [termColors, setTermColors] = useState<TerminalColors>(themes[CONSTANTS.DEFAULT_THEME]);
 
     // For storing what the user is actively typing. 
     const [input, setInput] = useState("");
@@ -177,6 +177,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                                     viewContent, setViewContent,
                                     termColors, setTermColors);
 
+
                             const commandHistoryEntry: CommandHistoryEntry = 
                                 { command: command, rawInput: input, environment: {...currentEnvironment} };
 
@@ -208,8 +209,8 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
 
                             addToDisplayHistory(terminalHistoryEntry);
 
-                            // bit hacky but i think this is the best way we can do this...
-                            if (input === "clear") { clearTerminal(); }
+                            // If the result contains the RESET_TERM escape sequence, clear the terminal.
+                            if (result.includes(CONSTANTS.ESCAPE_CODES.RESET_TERM)) { clearTerminal(); }
 
                             setInput("");
                             break;

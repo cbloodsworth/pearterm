@@ -1,5 +1,8 @@
 export const CONSTANTS = {
-    server: 'pearterm',
-    defaultTheme: 'default',
-    shellVersion: '0.0.1-alpha'
+    SERVER: 'pearterm',
+    DEFAULT_THEME: 'default',
+    SHELL_VERSION: '0.0.1-alpha',
+    ESCAPE_CODES: {
+        RESET_TERM: '\\ec'
+    }
 }
