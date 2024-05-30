@@ -41,6 +41,8 @@ interface TerminalProps {
     pwd: FileSystemNode;
     setPwd: (dir: FileSystemNode) => void;
     rootFS: FileSystemNode;
+    viewContent: string;
+    setViewContent: (content: string) => void;
 }
 
 interface CommandHistoryEntry {
@@ -64,17 +66,18 @@ interface DisplayLine {
     environment?: TerminalEnvironment;
 }
 
-const server = 'portfolio';
+const SERVER = 'portfolio';
+const DEFAULT_THEME = themes['default']
 
-const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
+const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, setViewContent }) => {
     // Current terminal metadata
     const [currentEnvironment, modifyEnvironment] = useState<TerminalEnvironment>({
-        server: server,
+        server: SERVER,
         user: user,
         dir: pwd.filename,
     });
 
-    const [termColors, setTermColors] = useState<TerminalColors>(themes['default'])
+    const [termColors, setTermColors] = useState<TerminalColors>(DEFAULT_THEME);
 
     // For storing what the user is actively typing. 
     const [input, setInput] = useState("");
@@ -171,6 +174,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                                 : evaluateCommand(
                                     command, pwd, setPwd, 
                                     currentEnvironment, modifyEnvironment, 
+                                    viewContent, setViewContent,
                                     termColors, setTermColors);
 
                             const commandHistoryEntry: CommandHistoryEntry = 
@@ -189,6 +193,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                                 }
                                 else {
                                     // If redirecting, don't output result to terminal: just write it to file
+                                    outputHistoryEntry.content = "";
                                     outputHistoryEntry.type = 'no-output';
                                 }
                             }

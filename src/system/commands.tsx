@@ -12,6 +12,7 @@ export enum CommandName {
     exit = 'exit',
     echo = 'echo',
     theme = 'theme',
+    view = 'view',
     debug = 'debug'
 }
 
@@ -59,6 +60,7 @@ const CMD_RMDIR: CommandTemplate = { name: CommandName.rmdir, allowed_flags: ["r
 const CMD_EXIT: CommandTemplate = { name: CommandName.exit, allowed_flags: [], params_expected: [0]}
 const CMD_ECHO: CommandTemplate = { name: CommandName.echo, allowed_flags: [], params_expected: []}
 const CMD_THEME: CommandTemplate = { name: CommandName.theme, allowed_flags: ["l"], params_expected: [0,1]}
+const CMD_VIEW: CommandTemplate = { name: CommandName.view, allowed_flags: [], params_expected: [1]}
 const CMD_DEBUG: CommandTemplate = { name: CommandName.debug, allowed_flags: [], params_expected: []}
 
 export const command_map = new Map([
@@ -74,5 +76,6 @@ export const command_map = new Map([
     ["".concat(CommandName.exit), CMD_EXIT],
     ["".concat(CommandName.echo), CMD_ECHO],
     ["".concat(CommandName.theme), CMD_THEME],
+    ["".concat(CommandName.view), CMD_VIEW],
     ["".concat(CommandName.debug), CMD_DEBUG],
 ]);

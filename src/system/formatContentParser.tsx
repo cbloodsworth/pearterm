@@ -71,6 +71,7 @@ const convertToHex = (colorCode: string | number): string | null => {
 }
 
 /**
+ * Factory method to create FormattedColors.
  * HTML color code to FormattedColor object.
  * @param colorCode Color code in the format (example) #FFFFFF or FFFFFF.
  * @returns FormattedColor object.
@@ -99,6 +100,7 @@ export const htmlToColor = (colorCode: string): FormattedColor | null => {
 }
 
 /**
+ * Factory method to create FormattedColors.
  * ANSI color code to FormattedColor object.
  * @param ansiCode Color code in the range 0-255.
  * @returns FormattedColor object.
@@ -193,7 +195,10 @@ export const parseANSICodeStyles = (content: string): JSX.Element[] => {
                 case 11: case 12: case 13: case 14: 
                 case 15: case 16: case 17: case 18: 
                 case 19: { font = fontMap[code % 10]; break;}
-                // Set foreground color
+                //// Set foreground color
+                // Basic cases
+                case 30: case 31: case 32: case 33:
+                case 34: case 35: case 36: case 37: { color = colorMap[code % 10]; break;}
                 // Next arguments must be 5;n or 2;r;g;b
                 case 38: {
                     // Checks if there are enough arguments ahead (2, at minimum)

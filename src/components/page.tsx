@@ -1,16 +1,13 @@
 import React from 'react';
 
 import '../styles/view.css';
+import FormattedContent from './formattedContent';
 
-interface PageProps {
-    pageName: string;
-}
-
-const Page: React.FC<PageProps> = ({ pageName }) => {
+const Page: React.FC<{ content: string }> = ({ content }) => {
     return (
         <>
             <div className="window page">
-                Welcome to {pageName}!
+                <FormattedContent content={content}/>
             </div>
         </>
     );

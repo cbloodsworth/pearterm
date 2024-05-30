@@ -22,6 +22,8 @@ export const evaluateCommand = (command: Command,
                                 setPwd: (dir: FileSystemNode) => void, 
                                 currentEnvironment: TerminalEnvironment,
                                 modifyEnvironment: (environment: TerminalEnvironment) => void,
+                                viewContent: string,
+                                setViewContent: (content: string) => void,
                                 termColors: TerminalColors,
                                 setTermColors: (colors: TerminalColors) => void) => {
     switch (command.name) {
@@ -46,7 +48,6 @@ export const evaluateCommand = (command: Command,
                 return displayName;
             });
 
-            
             return filenames.join('\u00A0\u00A0');  // add two spaces inbetween
         }
         case (CommandName.pwd): { return pwd.getFilepath(); }
@@ -150,12 +151,22 @@ export const evaluateCommand = (command: Command,
             if (themeName === "") return getError(command, `Did not supply theme name. \n(Use theme -l to list available themes.)`)
             const theme = themes[themeName];
 
-            if (theme === undefined) return getError(command, `No theme by name '${themeName}'.`);
+            if (theme === undefined) return getError(command, `${themeName}: No such theme`);
             else { 
                 setTermColors(theme);
             }
 
             return "Changed colors!";
+        }
+
+        case (CommandName.view): {
+            const fileToView = pwd.getFileSystemNode(command.parameters.at(0)!);
+            if (fileToView === null) return getError(command, `${command.parameters.at(0)!}: No such file`);
+            else {
+                if (fileToView.isDirectory) return getError(command, `Cannot view directories (Did you mean ls?)`)
+                setViewContent(fileToView.contents || `${fileToView.filename} has no content.`);
+            }
+            break;
         }
         case (CommandName.debug): {
             let debugString = termColors.default.formatted+"Default\n"+

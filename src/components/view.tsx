@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Terminal from './terminal'
 import Page from './page'
 
@@ -13,6 +13,7 @@ interface ViewProps {
 }
 
 const View: React.FC<ViewProps> = ({ pwd, setPwd, rootFS }) => {
+    const [viewContent, setViewContent] = useState("");
     return (
         <div className='view'>
             <Terminal
@@ -20,8 +21,10 @@ const View: React.FC<ViewProps> = ({ pwd, setPwd, rootFS }) => {
                 pwd={pwd}
                 setPwd={setPwd}
                 rootFS={rootFS}
+                viewContent={viewContent}
+                setViewContent={setViewContent}
             />
-            <Page pageName={pwd.filename} />
+            <Page content={viewContent} />
         </div>
     );
 };
