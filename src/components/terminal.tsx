@@ -10,23 +10,30 @@ import FileSystemNode from '../system/filetree';
 import { Validator, Tokenizer } from "../system/parser"
 import { Command } from "../system/commands"
 import { evaluateCommand } from '../system/implementation';
-import { getColorCode, getHTMLColorCode } from '../system/formatContentParser.tsx';
+import { FormattedColor, ansiToColor } from '../system/formatContentParser.tsx';
+
+// Data imports
+import { themes } from "../../data/themes"
 
 // CSS Styling
 import '../styles/view.css';
 
-interface TerminalColors {
-    default: string;
-    background: string;
-    dirColor: string;
-    serverColor: string;
+export interface TerminalColors {
+    default: FormattedColor;
+    background: FormattedColor;
+    primary: FormattedColor;
+    mute: FormattedColor;
+    info: FormattedColor;
+    success: FormattedColor;
+    warning: FormattedColor;
+    error: FormattedColor;
+    lightTheme?: boolean;
 }
 
 export interface TerminalEnvironment {
     server: string;
     user: string;
     dir: string;
-    termColors: TerminalColors;
 }
 
 interface TerminalProps {
@@ -65,15 +72,9 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
         server: server,
         user: user,
         dir: pwd.filename,
-        termColors: {
-            default: getColorCode(255)!,
-            background: getHTMLColorCode(24).color,
-            dirColor: getColorCode(63)!,
-            serverColor: getColorCode(10)!
-        }
     });
 
-    console.log(currentEnvironment.termColors.background);
+    const [termColors, setTermColors] = useState<TerminalColors>(themes['default'])
 
     // For storing what the user is actively typing. 
     const [input, setInput] = useState("");
@@ -129,18 +130,21 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
 
     return (
         <div className='window terminal' 
-             style={{background: currentEnvironment.termColors.background}}
+             style={{
+                background: termColors.background.htmlCode,
+                color: termColors.default.htmlCode,
+             }}
              onClick={() => { inputBoxRef.current.focus(); }}>
             {displayHistory.map((displayLine) => (
                 <>
-                    {displayLine.environment ? <Prompt environment={displayLine.environment}/> : <></> }
+                    {displayLine.environment ? <Prompt environment={displayLine.environment} colors={termColors}/> : <></> }
                     <TerminalContent content={displayLine.content} formatted={!displayLine.environment}/>
                     <div></div>
                 </>
             ))}
 
             {/* Current user prompt. */}
-            <Prompt environment={currentEnvironment} />
+            <Prompt environment={currentEnvironment} colors={termColors}/>
             <span>{input}</span><BlinkingCursor/>
             <div></div>
             
@@ -164,7 +168,10 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd }) => {
                             // Otherwise, evaluate the command!
                             const result = (input.length === 0)
                                 ? ""
-                                : evaluateCommand(command, pwd, setPwd, currentEnvironment, modifyEnvironment);
+                                : evaluateCommand(
+                                    command, pwd, setPwd, 
+                                    currentEnvironment, modifyEnvironment, 
+                                    termColors, setTermColors);
 
                             const commandHistoryEntry: CommandHistoryEntry = 
                                 { command: command, rawInput: input, environment: {...currentEnvironment} };

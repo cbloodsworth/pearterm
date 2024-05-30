@@ -1,14 +1,14 @@
 import React from 'react';
-import { TerminalEnvironment } from './terminal.tsx'
+import { TerminalColors, TerminalEnvironment } from './terminal.tsx'
 import '../styles/tab.css';
 import FormattedContent from './formattedContent.tsx';
 
-const Prompt: React.FC<{environment: TerminalEnvironment}> = ({environment}) => {
+const Prompt: React.FC<{environment: TerminalEnvironment, colors: TerminalColors}> = ({environment, colors}) => {
     return (
-        <FormattedContent content={environment.termColors.serverColor+environment.user+"@"+environment.server+
-                                   environment.termColors.default+": "+
-                                   environment.termColors.dirColor+environment.dir+
-                                   environment.termColors.default+" $ " }
+        <FormattedContent content={colors.success.formatted+environment.user+"@"+environment.server+
+                                   colors.default.formatted+": "+
+                                   colors.primary.formatted+environment.dir+
+                                   colors.default.formatted+" $ " }
         />
     );
 };

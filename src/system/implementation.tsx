@@ -1,7 +1,9 @@
-import { TerminalEnvironment } from "../components/terminal.tsx";
+import { TerminalColors, TerminalEnvironment } from "../components/terminal.tsx";
 import { Command, CommandName } from "../system/commands"
 import FileSystemNode from "../system/filetree.tsx"
-import { getColorCode } from "./formatContentParser.tsx";
+import { ansiToColor, htmlToColor } from "./formatContentParser.tsx";
+
+import { themes } from "../../data/themes.ts"
 
 /**
  * Returns formatted command error, given the name and associated error.
@@ -19,7 +21,9 @@ export const evaluateCommand = (command: Command,
                                 pwd: FileSystemNode, 
                                 setPwd: (dir: FileSystemNode) => void, 
                                 currentEnvironment: TerminalEnvironment,
-                                modifyEnvironment: (environment: TerminalEnvironment) => void) => {
+                                modifyEnvironment: (environment: TerminalEnvironment) => void,
+                                termColors: TerminalColors,
+                                setTermColors: (colors: TerminalColors) => void) => {
     switch (command.name) {
         case (CommandName.ls): {
             // Sort output alphabetically and filter out hidden files if necessary
@@ -35,8 +39,8 @@ export const evaluateCommand = (command: Command,
                 
                 // This is for coloring logic. (Directories vs files)
                 if (child.isDirectory) { 
-                    displayName = currentEnvironment.termColors.dirColor + displayName
-                                  + currentEnvironment.termColors.default 
+                    displayName = termColors.primary.formatted + displayName
+                                  + termColors.default.formatted
                 }
 
                 return displayName;
@@ -137,19 +141,32 @@ export const evaluateCommand = (command: Command,
         case (CommandName.echo): {
             return command.parameters.join(" ");  // this might be really naive tbh
         }
+
+        case (CommandName.theme): {
+            if (command.flags.has("l") || command.parameters.at(0) === 'list') {
+                return Object.keys(themes).toString().replaceAll(',', '\n');
+            }
+            const themeName = command.parameters.at(0) || "";
+            if (themeName === "") return getError(command, `Did not supply theme name. \n(Use theme -l to list available themes.)`)
+            const theme = themes[themeName];
+
+            if (theme === undefined) return getError(command, `No theme by name '${themeName}'.`);
+            else { 
+                setTermColors(theme);
+            }
+
+            return "Changed colors!";
+        }
         case (CommandName.debug): {
-            let debugString;
-            if (false) {
-                debugString = "Added file a.txt";
-                pwd.addFile("a.txt", "Content!\nContent!\nContent!");
-            }
-            else {
-                currentEnvironment.termColors.dirColor = getColorCode(Math.floor(Math.random() * 256))!;
-                currentEnvironment.termColors.default = getColorCode(Math.floor(Math.random() * 256))!;
-                currentEnvironment.termColors.serverColor = getColorCode(Math.floor(Math.random() * 256))!;
-                modifyEnvironment({...currentEnvironment});
-                debugString = "Changed colors!";
-            }
+            let debugString = termColors.default.formatted+"Default\n"+
+                              termColors.primary.formatted+"Primary\n"+
+                              termColors.mute.formatted+"Mute\n"+
+                              termColors.info.formatted+"Info\n"+
+                              termColors.success.formatted+"Success\n"+
+                              termColors.warning.formatted+"Warning\n"+
+                              termColors.error.formatted+"Error\n";
+
+            console.log(debugString);
             return debugString;
         }
         case (""): { break; }
