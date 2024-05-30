@@ -11,6 +11,8 @@ export const themes: {[key: string]: TerminalColors} = {
         warning: ansiToColor(11)!,
         error: ansiToColor(1)!,
         background: ansiToColor(16)!,
+        description: `
+Default look for a typical Linux terminal.`
     },
     "solarized-light": {
         default: htmlToColor("#657b83")!,
@@ -22,6 +24,10 @@ export const themes: {[key: string]: TerminalColors} = {
         error: htmlToColor("#dc322f")!,
         background: htmlToColor("#eee8d5")!,
         lightTheme: true,
+        description: `
+Precision colors for machines and people.\n
+All credit to Ethan Schoonover. Learn more at\n
+https://ethanschoonover.com/solarized/`
     },
     "solarized-dark": {
         default: htmlToColor("#839496")!,
@@ -32,16 +38,24 @@ export const themes: {[key: string]: TerminalColors} = {
         warning: htmlToColor("#b58900")!,
         error: htmlToColor("#dc322f")!,
         background: htmlToColor("#002b36")!,
+        description: `
+Precision colors for machines and people.\n
+All credit to Ethan Schoonover. Learn more at\n
+https://ethanschoonover.com/solarized/`
     },
     "discord-dark": {
         default: htmlToColor("#ffffff")!,
-        primary: htmlToColor("#7289da")!,
+        primary: htmlToColor("#5865f2")!,
         mute: htmlToColor("99aab5")!,
-        success: htmlToColor("#57f287")!,
-        info: htmlToColor("#5865f2")!,
+        success: htmlToColor("#7289da")!,
+        info: htmlToColor("#ee459e")!,
         warning: htmlToColor("fee75c")!,
         error: htmlToColor("#ed4245")!,
-        background: htmlToColor("#23272a")!
+        background: htmlToColor("#23272a")!,
+        description: `
+Calm tones based on Discord, a communication app.\n
+Learn more at https://discord.com/
+`
     },
     "rose-pine": {
         default: htmlToColor("#e0def4")!,
@@ -51,7 +65,12 @@ export const themes: {[key: string]: TerminalColors} = {
         info: htmlToColor("#c4a7e7")!,
         warning: htmlToColor("#f6c177")!,
         error: htmlToColor("#eb6f92")!,
-        background: htmlToColor("#191724")!
+        background: htmlToColor("#191724")!,
+        description: `
+All natural pine, faux fur and a bit of soho vibes for the classy minimalist.\n
+Learn more at https://rosepinetheme.com/ and donate at\n
+https://www.patreon.com/rosepine
+`
     },
     "rose-pine-moon": {
         default: htmlToColor("#e0def4")!,
@@ -61,7 +80,12 @@ export const themes: {[key: string]: TerminalColors} = {
         info: htmlToColor("#c4a7e7")!,
         warning: htmlToColor("#f6c177")!,
         error: htmlToColor("#eb6f92")!,
-        background: htmlToColor("#232136")!
+        background: htmlToColor("#232136")!,
+        description: `
+All natural pine, faux fur and a bit of soho vibes for the classy minimalist.\n
+Learn more at https://rosepinetheme.com/ and donate at\n
+https://www.patreon.com/rosepine
+`
     },
     "rose-pine-dawn": {
         default: htmlToColor("#575279")!,
@@ -73,5 +97,10 @@ export const themes: {[key: string]: TerminalColors} = {
         error: htmlToColor("#b4637a")!,
         background: htmlToColor("#faf4ed")!,
         lightTheme: true,
+        description: `
+All natural pine, faux fur and a bit of soho vibes for the classy minimalist.\n
+Learn more at https://rosepinetheme.com/ and donate at\n
+https://www.patreon.com/rosepine
+`
     },
 }

@@ -14,6 +14,7 @@ import { FormattedColor, ansiToColor } from '../system/formatContentParser.tsx';
 
 // Data imports
 import { themes } from "../../data/themes"
+import { CONSTANTS } from "../../data/constants"
 
 // CSS Styling
 import '../styles/view.css';
@@ -28,6 +29,7 @@ export interface TerminalColors {
     warning: FormattedColor;
     error: FormattedColor;
     lightTheme?: boolean;
+    description?: string;
 }
 
 export interface TerminalEnvironment {
@@ -66,18 +68,15 @@ interface DisplayLine {
     environment?: TerminalEnvironment;
 }
 
-const SERVER = 'portfolio';
-const DEFAULT_THEME = themes['default']
-
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, setViewContent }) => {
     // Current terminal metadata
     const [currentEnvironment, modifyEnvironment] = useState<TerminalEnvironment>({
-        server: SERVER,
+        server: CONSTANTS.server,
         user: user,
         dir: pwd.filename,
     });
 
-    const [termColors, setTermColors] = useState<TerminalColors>(DEFAULT_THEME);
+    const [termColors, setTermColors] = useState<TerminalColors>(themes[CONSTANTS.defaultTheme]);
 
     // For storing what the user is actively typing. 
     const [input, setInput] = useState("");
@@ -110,7 +109,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
      *  less trivial, like checking page zoom, or something.
      */
     const getMaxDisplayLines = () => {
-        return 23; 
+        return 26; 
     }
 
     /** Adds a terminal entry to the display history, while trimming if needed. */
@@ -136,6 +135,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
              style={{
                 background: termColors.background.htmlCode,
                 color: termColors.default.htmlCode,
+                border: `1px solid ${termColors.success.htmlCode}`
              }}
              onClick={() => { inputBoxRef.current.focus(); }}>
             {displayHistory.map((displayLine) => (

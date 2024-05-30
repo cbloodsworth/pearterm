@@ -2,11 +2,11 @@ import { CommandName, Command, command_map } from './commands'
 
 
 const get_error_command = (error: string): Command => {
-    return { name:`Syntax Error: ${error}`, flags:[], parameters: [] };
+    return { name:`Syntax Error: ${error}`, flags: new Set([]), parameters: [] };
 }
 
 const get_empty_command = (): Command => {
-    return { name:"", flags:[], parameters:[] };
+    return { name:"", flags: new Set([]), parameters:[] };
 }
 
 // This is probably not the best, most robust way to do this....
@@ -174,9 +174,10 @@ export class Validator {
             if (!isFlag(flag)) return get_error_command("Unexpected flag.");  // can never be too safe
 
             flag = flag.substring(flag.search(/[a-z]/));
+            if (flag === 'h' || flag === 'help') {
+                return { name: CommandName.help, flags: new Set([]), parameters: [cmd_name]};
+            }
 
-            // Note that this is string matching, not match in the context of parsing.
-            // We are matching flag with a regex string of allowed flags (ex. "mn" allows -m and -n)
             if (!(template.allowed_flags.includes(flag))) {
                 return get_error_command("Unexpected flag.");
             }
@@ -191,7 +192,8 @@ export class Validator {
         }
         if (template.params_expected.length != 0 
             && !(template.params_expected.includes(cmd_params.length))) {
-            return get_error_command(`Unexpected number of parameters: ${cmd_params.length}. Expected ${template.params_expected} parameters.`);
+            return get_error_command(`Unexpected number of parameters: ${cmd_params.length}. 
+                                      Expected ${template.params_expected.join(" or ")} parameters.`);
         }
 
         /** Verifying end of file as we expect */
