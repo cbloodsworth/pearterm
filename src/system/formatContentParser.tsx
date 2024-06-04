@@ -230,7 +230,8 @@ export const parseANSICodeStyles = (content: string): JSX.Element[] => {
     rawElements.push({content: content, color: color, style: style, font: font});
 
     return rawElements.map((rawElement) => {
-                return <span style={{
+                return <span 
+                    style={{
                         ...rawElement.style,
                         ...rawElement.color,
                         ...rawElement.font,

@@ -44,12 +44,16 @@
 }
 
 .terminalInput {
+    position: absolute;
+    bottom:-0.5vw;
+    right:-0.5vw;
+    font-size: 0.25px;
     border: none;
     outline: none;
     margin: 0px;
     padding: 0px;
+    color: red;
+    user-select: none;
     background-color: transparent;
-    caret-color: white;
-    font-size: 0rem;
     font-family: 'JetBrainsMono';
 }

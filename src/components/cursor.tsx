@@ -14,7 +14,7 @@ const BlinkingCursor = () => {
     }, [speed]);
 
     return (
-        <span id="cursor" style={{ opacity: cursorVisible ? 1 : 0 }}>|</span>
+        <span id="cursor" style={{ fontWeight: '50', userSelect: 'none', opacity: cursorVisible ? 1 : 0 }}>|</span>
     );
 };
 

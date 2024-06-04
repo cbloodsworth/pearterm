@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, KeyboardEventHandler } from 'react';
 
 // React components
 import Prompt from './prompt'
@@ -130,6 +130,126 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
         modifyDisplayHistory([...displayHistory, ...addition].slice(cutoff));
     }
 
+    const handleKeyDown = (event) => {
+        switch (event.key) {
+            case "Enter": {
+                historyIndex.current = -1;
+
+                // Parse!
+                const command = new Validator(new Tokenizer(input).tokenize()).parse();
+
+                // If input is empty, result is empty string.
+                // Otherwise, evaluate the command!
+                const result = (input.length === 0)
+                    ? ""
+                    : evaluateCommand(
+                        command, pwd, setPwd, 
+                        currentEnvironment, modifyEnvironment, 
+                        viewContent, setViewContent,
+                        termColors, setTermColors);
+
+
+                const commandHistoryEntry: CommandHistoryEntry = 
+                    { command: command, rawInput: input, environment: {...currentEnvironment} };
+
+                const outputHistoryEntry: OutputHistoryEntry = 
+                    { content: result, type: input.length === 0 ? 'no-output' : 'command-output' };
+
+                // If we're redirecting, write the result to a file
+                //   and do some modification to the outputHistory object
+                if (command.redirectTo) {
+                    const redirectResult = pwd.writeTo(command.redirectTo, result);
+                    if (redirectResult.err) { 
+                        outputHistoryEntry.content = redirectResult.err;
+                        outputHistoryEntry.type = 'error';
+                    }
+                    else {
+                        // If redirecting, don't output result to terminal: just write it to file
+                        outputHistoryEntry.content = "";
+                        outputHistoryEntry.type = 'no-output';
+                    }
+                }
+
+                const terminalHistoryEntry = { inputCommand: commandHistoryEntry, outputResult: outputHistoryEntry };
+
+                // Add the newest command to the history
+                modifyHistory([
+                    ...history,
+                    terminalHistoryEntry
+                ]);
+
+                addToDisplayHistory(terminalHistoryEntry);
+
+                // If the result contains the RESET_TERM escape sequence, clear the terminal.
+                if (result.includes(CONSTANTS.ESCAPE_CODES.RESET_TERM)) { clearTerminal(); }
+
+                setInput("");
+                break;
+            }
+
+            // Most terminals support Ctrl+L for clearing
+            case "l": {
+                if (event.ctrlKey) {
+                    event.preventDefault();
+                    clearTerminal();
+                }
+                break;
+            }
+
+            // We eventually want tab completion. God help me
+            case "Tab": {
+                event.preventDefault();
+                // uhhh do something eventually
+                break;
+            }
+
+            case "ArrowLeft":
+            case "ArrowRight": {
+                event.preventDefault();
+                break;
+            }
+
+            // Set input to previous command entered
+            case "ArrowUp": {
+                event.preventDefault();
+                if (historyIndex.current < history.length - 1) {
+                    historyIndex.current++;
+                    setInput(history[history.length - 1 - historyIndex.current].inputCommand.rawInput);
+                }
+                break;
+            }
+
+            // Set input to next command entered
+            case "ArrowDown": {
+                event.preventDefault();
+                if (historyIndex.current > 0) {
+                    historyIndex.current--;
+                    setInput(history[history.length - 1 - historyIndex.current].inputCommand.rawInput || "");
+                }
+
+                // No more commands in history
+                else if (historyIndex.current === 0) {
+                    setInput("");
+                }
+                break;
+            }
+            default: {
+                break;  // I don't exactly know what to do here
+            }
+        }
+    }
+
+    const handleClick = () => {
+        const selection = window.getSelection();
+        if (!selection?.toString()) {
+            inputBoxRef.current.focus();
+        }
+    }
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setInput(event.target.value);
+    }
+
     return (
         <div className='window terminal' 
              style={{
@@ -137,7 +257,8 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                 color: termColors.default.htmlCode,
                 border: `1px solid ${termColors.success.htmlCode}`
              }}
-             onClick={() => { inputBoxRef.current.focus(); }}>
+            onClick={handleClick}
+        >
             {displayHistory.map((displayLine) => (
                 <>
                     {displayLine.environment ? <Prompt environment={displayLine.environment} colors={termColors}/> : <></> }
@@ -148,126 +269,18 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
 
             {/* Current user prompt. */}
             <Prompt environment={currentEnvironment} colors={termColors}/>
-            <span>{input}</span><BlinkingCursor/>
-            <div></div>
-            
+            <TerminalContent content={input} formatted={false}/>
             <input
-                ref={inputBoxRef}
                 type='text'
                 value={input}
+                size={1}
+                ref={inputBoxRef}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+                spellCheck={false}
                 className='terminalInput'
-                onChange={ 
-                    event => { setInput(event.target.value); }
-                }
-                onKeyDown={event => {
-                    switch (event.key) {
-                        case "Enter": {
-                            historyIndex.current = -1;
-
-                            // Parse!
-                            const command = new Validator(new Tokenizer(input).tokenize()).parse();
-
-                            // If input is empty, result is empty string.
-                            // Otherwise, evaluate the command!
-                            const result = (input.length === 0)
-                                ? ""
-                                : evaluateCommand(
-                                    command, pwd, setPwd, 
-                                    currentEnvironment, modifyEnvironment, 
-                                    viewContent, setViewContent,
-                                    termColors, setTermColors);
-
-
-                            const commandHistoryEntry: CommandHistoryEntry = 
-                                { command: command, rawInput: input, environment: {...currentEnvironment} };
-
-                            const outputHistoryEntry: OutputHistoryEntry = 
-                                { content: result, type: input.length === 0 ? 'no-output' : 'command-output' };
-
-                            // If we're redirecting, write the result to a file
-                            //   and do some modification to the outputHistory object
-                            if (command.redirectTo) {
-                                const redirectResult = pwd.writeTo(command.redirectTo, result);
-                                if (redirectResult.err) { 
-                                    outputHistoryEntry.content = redirectResult.err;
-                                    outputHistoryEntry.type = 'error';
-                                }
-                                else {
-                                    // If redirecting, don't output result to terminal: just write it to file
-                                    outputHistoryEntry.content = "";
-                                    outputHistoryEntry.type = 'no-output';
-                                }
-                            }
-
-                            const terminalHistoryEntry = { inputCommand: commandHistoryEntry, outputResult: outputHistoryEntry };
-
-                            // Add the newest command to the history
-                            modifyHistory([
-                                ...history,
-                                terminalHistoryEntry
-                            ]);
-
-                            addToDisplayHistory(terminalHistoryEntry);
-
-                            // If the result contains the RESET_TERM escape sequence, clear the terminal.
-                            if (result.includes(CONSTANTS.ESCAPE_CODES.RESET_TERM)) { clearTerminal(); }
-
-                            setInput("");
-                            break;
-                        }
-
-                        // Most terminals support Ctrl+L for clearing
-                        case "l": {
-                            if (event.ctrlKey) {
-                                event.preventDefault();
-                                clearTerminal();
-                            }
-                            break;
-                        }
-
-                        // We eventually want tab completion. God help me
-                        case "Tab": {
-                            event.preventDefault();
-                            // uhhh do something eventually
-                            break;
-                        }
-
-                        case "ArrowLeft":
-                        case "ArrowRight": {
-                            event.preventDefault();
-                            break;
-                        }
-
-                        // Set input to previous command entered
-                        case "ArrowUp": {
-                            event.preventDefault();
-                            if (historyIndex.current < history.length - 1) {
-                                historyIndex.current++;
-                                setInput(history[history.length - 1 - historyIndex.current].inputCommand.rawInput);
-                            }
-                            break;
-                        }
-
-                        // Set input to next command entered
-                        case "ArrowDown": {
-                            event.preventDefault();
-                            if (historyIndex.current > 0) {
-                                historyIndex.current--;
-                                setInput(history[history.length - 1 - historyIndex.current].inputCommand.rawInput || "");
-                            }
-
-                            // No more commands in history
-                            else if (historyIndex.current === 0) {
-                                setInput("");
-                            }
-                            break;
-                        }
-                        default: {
-                            break;  // I don't exactly know what to do here
-                        }
-                    }
-                }}
             />
+            <BlinkingCursor/>
         </div >
     );
 };
