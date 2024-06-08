@@ -187,7 +187,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                 break;
             }
 
-            // Most terminals support Ctrl+L for clearing
+            // Most terminals support Ctrl+l for clearing
             case "l": {
                 if (event.ctrlKey) {
                     event.preventDefault();

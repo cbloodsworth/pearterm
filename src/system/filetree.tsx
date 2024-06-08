@@ -84,7 +84,6 @@ class FileSystemNode {
 
         const path = filename.split('/').filter((value) => value.length > 0);
         for (const file of path) {
-            console.log(file);
             const child = curr.getChildFile(file);
             if (child) { curr = child; }
             else { return null; }

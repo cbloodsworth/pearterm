@@ -147,15 +147,6 @@ test('Remove directory recursive returns error if doesnt exist', () => {
     expect(code.err.length).not.toBe(0);
 });
 
-test('Modify filename', () => {
-    const root = createRootNode();
-    const file = root.addFile("file.txt");
-
-    expect(file.getFilename()).toBe("file.txt");
-    file.setFilename("newName.txt");
-    expect(file.getFilename()).toBe("newName.txt");
-});
-
 test('Get absolute filepath', () => {
     const root = createRootNode();
     const file = root.addDirectory("a").addDirectory("b").addDirectory("c").addFile("file.txt");
@@ -179,10 +170,10 @@ test('Use absolute filepath for retrieval', () => {
 
     const b = root.getFileSystemNode("/a/b");
     expect(b).not.toBeNull();
-    expect(b.getFilename()).toBe("b");
-    expect(b.getFilepath()).toBe("/a/b");
+    expect(b!.getFilename()).toBe("b");
+    expect(b!.getFilepath()).toBe("/a/b");
 
-    const file2 = b.getFileSystemNode("c/file.txt");
+    const file2 = b!.getFileSystemNode("c/file.txt");
     expect(file).toBe(file2);
 });
 

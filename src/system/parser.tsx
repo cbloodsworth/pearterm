@@ -18,64 +18,108 @@ export class Scanner {
     source: string;
     start: number;  // start of current consumption
     current: number;  // index lexer is currently at
-    raw_tokens: string[];
+    rawTokens: string[];
 
     constructor(source: string) {
         this.source = source.trim();
         this.start = 0;
         this.current = 0;
-        this.raw_tokens = [];
+        this.rawTokens = [];
     }
 
+    /** Get the character `num` after current, or "" if none exists  */
     get = (num: number) => this.source.charAt(this.current + num);
+
+    /** Check if a character exists `num` after current */
     has = (num: number) => (this.get(num) != "");
+
+    /** Gets the character at current */
     getNext = () => this.get(0);
+
+    /** Check if a character at current */
     hasNext = () => this.has(0);
-    advance = () => {
+
+    /**
+     *  Takes the subtring from [start, current) and pushes it to rawTokens.
+     *  Sets start = current.
+     */
+    consume = () => {
         const substr = this.source.substring(this.start, this.current);
-        if (substr.length != 0) this.raw_tokens.push(substr);
-        this.current++;
+        if (substr.length != 0) this.rawTokens.push(substr);
         this.start = this.current;
     }
 
-    lex = (): string[] | undefined => {
-        const scope: string[] = [];
+    /**
+     * Shifts the low and high pointer by one, effectively skipping the character.
+     */
+    forward = () => {
+        this.start++;
+        this.current++;
+    }
+
+    /**
+     * Skips until non-whitespace character
+     */
+    skipSpaces = () => {
+        while (this.hasNext() && this.getNext() === ' ') {
+            this.forward();
+        }
+        this.current--;
+    }
+
+    lex = (): string[] | null => {
+        // Character array for different scope identifiers like ' or "
         while (this.hasNext()) {
-            const curr = this.getNext();
-            switch (curr) {
+            const currentChar = this.getNext();
+            switch (currentChar) {
                 case ('\''): // Single quote
                 case ('"'):  // Double quote
                 {
-                    scope.push(curr);
-                    this.advance();
+                    this.consume();
+                    this.forward();
 
+                    let closedQuote = false;
                     while (this.hasNext()) { 
-                        if (this.getNext() === scope[scope.length - 1]) {
-                            scope.pop();
-                            this.advance();
+                        this.current++;
+                        if (this.getNext() === currentChar) {
+                            this.consume();
+                            closedQuote = true;
                             break;
                         }
-                        this.current++; 
                     }
-                    this.current--;
+
+                    if (!closedQuote) return null;
+
+                    this.forward();
+                    this.skipSpaces();
+
                     break;
                 }
+                case ('|'): case ('>'):
                 case (' '):  // Split on spaces by default
                 {
-                    this.advance();
-                    while (this.getNext() === ' ') 
-                        { this.current++; }
+                    const gatherOp = (currentChar !== ' ')
+                    this.consume();
 
-                    this.current--;
+                    if (gatherOp) { 
+                        if (currentChar === '>' && this.get(1) === '>') {
+                            this.current++;
+                        }
+                        this.current++;
+                        this.consume(); 
+                    }
+
+                    this.skipSpaces();
 
                     break;
                 }
             }
             this.current++;
         }
-        this.advance();
-        console.log(this.raw_tokens)
-        return this.raw_tokens;
+
+        this.consume();
+        console.log(this.rawTokens);
+        return this.rawTokens;
     }
 }
 
@@ -228,4 +272,10 @@ export enum TokenKind {
     PARAMETER,
     REDIRECT,
     EOF
+}
+
+export const testParserModules = {
+    Scanner,
+    Tokenizer,
+    Validator
 }
