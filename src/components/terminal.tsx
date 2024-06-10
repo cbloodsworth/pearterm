@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, KeyboardEventHandler } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 // React components
 import Prompt from './prompt'
@@ -7,7 +7,6 @@ import TerminalContent from './terminalContent.tsx';
 
 // System utilities
 import FileSystemNode from '../system/filetree';
-import { Validator, Tokenizer } from "../system/parser"
 import { Command } from "../system/commands"
 import { evaluateCommand } from '../system/implementation';
 import { FormattedColor, ansiToColor } from '../system/formatContentParser.tsx';
@@ -18,6 +17,7 @@ import { CONSTANTS } from "../../data/constants"
 
 // CSS Styling
 import '../styles/view.css';
+import { parse } from '../system/parser/bashParser.tsx';
 
 export interface TerminalColors {
     default: FormattedColor;
@@ -136,7 +136,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                 historyIndex.current = -1;
 
                 // Parse!
-                const command = new Validator(new Tokenizer(input).tokenize()).parse();
+                const command = parse(input);
 
                 // If input is empty, result is empty string.
                 // Otherwise, evaluate the command!
