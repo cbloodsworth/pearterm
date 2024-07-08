@@ -2,7 +2,9 @@
     display: inline-flex;
     overflow: hidden;
 
-    background-color: #393939;
+    color: var(--fgColor);
+    background-color: var(--componentColor);
+
     padding: 0.5rem;
     padding-left: 1rem;
     width: 18rem;
@@ -14,20 +16,16 @@
 }
 
 .tab:hover {
-    background-color: #292929;
+    background-color: var(--componentColor);
 }
 
 .tab:active {
-    background-color: #161616;
+    background-color: var(--componentColor);
 }
 
 .tab.selected {
-    background-color: #161616;
+    background-color: var(--componentColor);
 }
-
-/* .tab.selected:hover {
-    background-color: #202020;
-} */
 
 .tabList {
     display: flex;

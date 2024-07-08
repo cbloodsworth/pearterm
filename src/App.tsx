@@ -5,6 +5,8 @@ import View from './components/view'
 import FileSystemNode from './system/filetree';
 
 import './styles/view.css';
+import ThemeToggle from './components/themeToggle';
+
 
 const App: React.FC = () => {
   const tabDirs = ['main', 'projects', 'links'];
@@ -21,9 +23,9 @@ const App: React.FC = () => {
    *          it should be chosen off some other criteria (name === "main"?)
    */
   const [pwd, setPwd] = useState<FileSystemNode>(rootFS.getChildren()[0]);
-
   return (
     <>
+      <ThemeToggle/>
       <TabList
         tabLabels={tabDirs}
         tabThumbnails={tabThumbnails}

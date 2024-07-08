@@ -1,9 +1,14 @@
 :root {
-  color-scheme: light dark;
   color: #F3F3F3;
-  background-color: #4f4f4f;
+
+  --fgColor: #291F0B;
+  --bgColor: #CCFCCB;
+  --componentColor: #7ABE7E;
+  --darkComponentColor: #5A9E5E;
 
   overflow: hidden;
+
+  background-color: var(--bgColor);
 
   font-family: 'JetBrainsMono';
   line-height: 1.5;
@@ -16,6 +21,13 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+}
+
+[data-theme="dark"] {
+  --fgColor: #F1FFFA;
+  --bgColor: #B3EFB2;
+  --componentColor: #365239;
+  --darkComponentColor: #162219;
 }
 
 a {
@@ -49,9 +61,10 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
+  background-color: var(--componentColor);
+  color: var(--fgColor);
 }
 
 button:hover {
@@ -63,18 +76,3 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-
-  a:hover {
-    color: #747bff;
-  }
-
-  button {
-    background-color: #f9f9f9;
-  }
-}

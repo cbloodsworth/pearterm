@@ -1,7 +1,6 @@
 import React from 'react';
 import '../styles/tab.css';
 
-
 interface TabProps {
     label: string;
     isSelected: boolean;

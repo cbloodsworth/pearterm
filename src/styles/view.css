@@ -5,11 +5,12 @@
     height: 95vh;
     width: 100vw;
 
+    background-color: var(--componentColor);
+
     box-sizing: border-box;
     border-radius: 0.25rem;
 
     font-weight: 600;
-    background-color: #161616;
 
     white-space: pre;
 
@@ -28,6 +29,8 @@
     padding: 1vw;
 
     border-radius: 0.25rem;
+
+    color: var(--fgColor);
 }
 
 .window.terminal {
@@ -40,7 +43,7 @@
 .window.page {
     right: 1vw;
     width: 40vw;
-    border: 1px solid blue;
+    background-color: var(--darkComponentColor);
 }
 
 .terminalInput {
