@@ -162,6 +162,7 @@ export const evaluateCommand = (command: Command,
             const removeName = command.parameters[0];
 
             let result;
+            
             if (command.flags.has("r")) { result = pwd.removeDirectoryRecursive(removeName); }
             else { result = pwd.removeFile(removeName); }
 

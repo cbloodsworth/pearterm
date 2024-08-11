@@ -164,8 +164,8 @@ export class Validator {
         if (!this.match(TokenKind.COMMAND)) return get_error_command("Unknown command.");
 
         const cmd_name = this.tokens[0].content;  // Gathered command name here
-        const template = command_map.get(cmd_name);
-        if (template == undefined) return get_error_command("Unknown command.");
+        const cmd_template = command_map.get(cmd_name);
+        if (cmd_template == undefined) return get_error_command("Unknown command.");
 
         /** Verifying flags */
         const cmd_flags: Set<string> = new Set();
@@ -178,11 +178,24 @@ export class Validator {
                 return { name: CommandName.help, flags: new Set([]), parameters: [cmd_name]};
             }
 
-            if (!(template.allowed_flags.includes(flag))) {
-                return get_error_command("Unexpected flag.");
+            if (cmd_template.allowed_flags.includes(flag)) {
+                cmd_flags.add(flag);
             }
+            // Attempt to break up flag if valid (i.e. -rf becomes -r -f)
+            else {
+                // Split flag string into a character array
+                const splitFlags = Array.from(flag);
 
-            cmd_flags.add(flag);  // Gathering command flags here
+                // If every character in splitFlags is a valid flag
+                if (splitFlags.map(char => cmd_template.allowed_flags.includes(char))
+                              .every(Boolean)) {
+                    splitFlags.forEach(flag => cmd_flags.add(flag));
+                }
+                else {
+                    return get_error_command(`Invalid option -- `+
+                    `'${splitFlags.find(char => !cmd_template.allowed_flags.includes(char))}'`);
+                }
+            }
         }
 
         /** Verifying parameters */
@@ -190,10 +203,10 @@ export class Validator {
         while (this.match(TokenKind.PARAMETER)) { 
             cmd_params.push(this.prev().content)
         }
-        if (template.params_expected.length != 0 
-            && !(template.params_expected.includes(cmd_params.length))) {
+        if (cmd_template.params_expected.length != 0 
+            && !(cmd_template.params_expected.includes(cmd_params.length))) {
             return get_error_command(`Unexpected number of arguments: ${cmd_params.length}, `+
-                                     `Expected ${template.params_expected.join(" or ")}.`);
+                                     `Expected ${cmd_template.params_expected.join(" or ")}.`);
         }
 
         /** Verifying end of file as we expect */
