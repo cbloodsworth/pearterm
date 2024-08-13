@@ -2,6 +2,18 @@ interface FSResult {
     err: string
 }
 
+type Permission = {
+    r: boolean
+    w: boolean
+    x: boolean
+}
+
+const fmtPerm = (p: Permission): string => {
+    return `${p.r ? 'r' : '-'}`+
+           `${p.w ? 'w' : '-'}`+
+           `${p.x ? 'x' : '-'}`;
+}
+
 const OK: FSResult = {err: ""};
 
 class FileSystemNode {
@@ -12,7 +24,17 @@ class FileSystemNode {
     public filename: string;  // semantic filename or directory name
     public filepath: string;  // absolute filepath from root
     public contents: string;
+
     public isDirectory: boolean; 
+    public ownerPerms: Permission;
+    public groupPerms: Permission;
+    public globalPerms: Permission;
+
+    public numHardLinks: number;
+    public owner: string;
+    public group: string;
+
+    public modificationTime: Date;
 
     constructor(parent: FileSystemNode | null, filename: string, isDirectory=false, contents='') {
         this.parent = parent || this;
@@ -30,7 +52,19 @@ class FileSystemNode {
         }
 
         this.contents = contents;
+
         this.isDirectory = isDirectory;
+        this.ownerPerms = {r: true, w: true, x: isDirectory};
+        this.groupPerms = {r: true, w: false, x: isDirectory};
+        this.globalPerms = {r: true, w: false, x: isDirectory};
+
+        // TODO: This is not currently accurate but just a placeholder.
+        this.numHardLinks = 1;
+        this.owner = 'user';
+        this.group = 'user';
+
+        this.modificationTime = new Date();
+
         this.children = [];
 
         // This would be a developer error
@@ -93,6 +127,16 @@ class FileSystemNode {
         return curr;
     }
 
+    getFilePerms(): string {
+        let res = "";
+        res += this.isDirectory ? 'd' : '-';
+        res += fmtPerm(this.ownerPerms);
+        res += fmtPerm(this.groupPerms);
+        res += fmtPerm(this.globalPerms);
+
+        return res;
+    }
+
     getSubdirectories() {
         return this.children.filter((child) => child.isDirectory).map((child) => child.getFilename());
     }
@@ -124,9 +168,18 @@ class FileSystemNode {
         const file = this.getFileSystemNode(filename);
 
         if (!file) { this.addFile(filename, content); }
-        else { file.contents = content; }
+        else { 
+            file.contents = content; 
+            this.touchFile();
+        }
 
         return OK;
+    }
+
+    /** Touches this file, updating its access time. */
+    touchFile(): Date {
+        this.modificationTime = new Date();
+        return this.modificationTime;
     }
 
     /**
@@ -184,6 +237,23 @@ class FileSystemNode {
         this.children.splice(remove_index, 1);
 
         return OK;
+    }
+
+    getFmtTime(): string {
+        // Get date string but without day of the week
+        const dateSplit = this.modificationTime.toDateString().split(' ').slice(1);
+        
+        // If file was made in the current year, then display it as time instead
+        if (parseInt(dateSplit[2]) === new Date().getFullYear()) {
+            // Taking this way too far
+            dateSplit[2] = new Date().toLocaleTimeString("en-US")
+                .split(' ')[0]
+                .split(':')
+                .slice(0,2)
+                .join(':');
+        }
+
+        return dateSplit.join(" ");
     }
 }
 

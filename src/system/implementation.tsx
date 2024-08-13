@@ -74,7 +74,15 @@ export const evaluateCommand = (command: Command,
                                   + termColors.default.formatted
                 }
 
-                return displayName;
+                if (!command.flags.has("l")) { return displayName; }
+                else {
+                    return `${child.getFilePerms()}  `+
+                           `${child.numHardLinks} `+
+                           `${child.owner} `+
+                           `${child.group} `+
+                           `${child.getFmtTime()} `+
+                           `${displayName}`;
+                }
             });
 
             // Scummy workaround until I can figure out how to actually represent "." and ".." in code
@@ -84,7 +92,7 @@ export const evaluateCommand = (command: Command,
             );
 
             // If redirecting, do newlines. Otherwise, optimize for human readability
-            const delim = command.redirectTo
+            const delim = command.redirectTo || command.flags.has("l")
                 ? "\n"
                 : "  "
             return filenames.join(delim);  // add two spaces inbetween
@@ -135,10 +143,13 @@ export const evaluateCommand = (command: Command,
             return CONSTANTS.ESCAPE_CODES.RESET_TERM;
         }
         case (CommandName.touch): {
-            const new_filename = command.parameters[0];
-            if (new_filename.includes('/')) { return getError(command, `Illegal character used`); }
+            const filename = command.parameters[0];
+            if (filename.includes('/')) { return getError(command, `Illegal character used`); }
 
-            pwd.addFile(new_filename);
+            const file = pwd.getFileSystemNode(filename);
+            if (file) { file.touchFile(); }
+            else { pwd.addFile(filename); }
+            
             break;
         }
         case (CommandName.mkdir): {
