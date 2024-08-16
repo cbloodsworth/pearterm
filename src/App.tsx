@@ -10,7 +10,7 @@ import ThemeToggle from './components/themeToggle';
 
 const App: React.FC = () => {
   const tabDirs = ['main', 'projects', 'links'];
-  const tabThumbnails = 'https://upload.wikimedia.org/wikipedia/commons/9/9e/UbuntuCoF.svg'
+  const tabThumbnails = 'pear.svg'
 
   /** Initialize the file system tree, with '/' as the root */
   const [rootFS, modifyFS] = useState<FileSystemNode>((): FileSystemNode => {
