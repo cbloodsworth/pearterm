@@ -59,7 +59,7 @@ export const evaluateCommand = (command: Command,
 
             const children = dir.getChildren()
                 .sort((a,b) => a.filename.localeCompare(b.filename))
-                .filter((child) => child.filename[0] !== '.' || command.flags.has("a") || command.flags.has("A"))
+                .filter((child) => !child.filename.startsWith('.') || command.flags.has("a") || command.flags.has("A"))
 
             const filenames = children.map((child) => {
                 let displayName = child.filename;
@@ -91,11 +91,11 @@ export const evaluateCommand = (command: Command,
                 termColors.primary.formatted + ".." + termColors.default.formatted
             );
 
-            // If redirecting, do newlines. Otherwise, optimize for human readability
+            // Choose whether we separate by spaces or newlines
             const delim = command.redirectTo || command.flags.has("l")
                 ? "\n"
                 : "  "
-            return filenames.join(delim);  // add two spaces inbetween
+            return filenames.join(delim);
         }
         case (CommandName.pwd): { return pwd.getFilepath(); }
         case (CommandName.cd): {
@@ -144,20 +144,14 @@ export const evaluateCommand = (command: Command,
         }
         case (CommandName.touch): {
             const filename = command.parameters[0];
-            if (filename.includes('/')) { return getError(command, `Illegal character used`); }
-
             const file = pwd.getFileSystemNode(filename);
             if (file) { file.touchFile(); }
             else { pwd.addFile(filename); }
-            
             break;
         }
         case (CommandName.mkdir): {
             // Get rid of trailing /'s
             const dirname = command.parameters[0].replace(/\/+$/, '');  
-
-            // Cannot use / 
-            if (dirname.includes('/')) { return getError(command, `Illegal character used`); }
 
             // Does this name already exist in this location?
             if (pwd.getChildrenFilenames().includes(dirname)) {

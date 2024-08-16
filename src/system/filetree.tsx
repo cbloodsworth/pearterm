@@ -1,5 +1,7 @@
+import { CONSTANTS } from "../../data/constants";
+
 interface FSResult {
-    err: string
+    err: string;
 }
 
 type Permission = {
@@ -111,6 +113,7 @@ class FileSystemNode {
         return this.children.find((child) => child.getFilename() === filename) || null;
     }
 
+    // Traverses the tree to find if this file exists, returning it if it does.
     private getAbsoluteFile(filename: string): FileSystemNode | null {
         let curr = (filename.charAt(0) === '/')
             ? this.root
@@ -118,7 +121,6 @@ class FileSystemNode {
 
         const path = filename.split('/').filter((value) => value.length > 0);
         for (const file of path) {
-            console.log(file);
             const child = curr.getChildFile(file);
             if (child) { curr = child; }
             else { return null; }
@@ -146,20 +148,33 @@ class FileSystemNode {
     }
 
     /** Adds a file to the directory's children list, only if it's a directory */
-    addFile(filename: string, content=''): FileSystemNode {
+    addFile(filename: string, content=''): FileSystemNode | string {
         return this.addItem(filename, false, content);
     }
 
     /** Adds a directory to the directory's children list */
-    addDirectory(filename: string): FileSystemNode {
+    addDirectory(filename: string): FileSystemNode | string {
         return this.addItem(filename, true);
     }
 
     /** Helper function to abstract out functionality of addDirectory and addFile */
-    addItem(filename: string, isDirectory: boolean, content=''): FileSystemNode {
-        if (!this.isDirectory) { throw Error('Can only add files to directories'); }
-        const result = new FileSystemNode(this, filename, isDirectory, content);
-        this.children.push(result)
+    addItem(filepath: string, isDirectory: boolean, content=''): FileSystemNode | string {
+        if (filepath.endsWith("/")) filepath = filepath.slice(0, -1);
+
+        const filename = filepath.split("/").slice(-1).join();
+
+        const destination = 
+            filepath.includes("/")
+                ? this.getFileSystemNode(filepath.split("/")
+                          .slice(0, -1)
+                          .join("/"))
+                : this
+
+        if (!destination) { return CONSTANTS.ERROR_CODES.ENOENT;}
+        if (!destination.isDirectory) { return CONSTANTS.ERROR_CODES.ENOTDIR; }
+
+        const result = new FileSystemNode(destination, filename, isDirectory, content);
+        destination.children.push(result)
         return result;
     }
 
@@ -189,8 +204,8 @@ class FileSystemNode {
      */
     removeFile(filename: string): FSResult {
         const file = this.getFileSystemNode(filename);
-        if (file === null) { return {err: "File does not exist in current scope"}; }
-        if (file.isDirectory) { return {err: "File is a directory"}; }
+        if (file === null) { return {err: CONSTANTS.ERROR_CODES.ENOENT}; }
+        if (file.isDirectory) { return {err: CONSTANTS.ERROR_CODES.EISDIR}; }
 
         const remove_index = this.children.indexOf(file);
         this.children.splice(remove_index, 1);
@@ -199,8 +214,8 @@ class FileSystemNode {
     }
 
     /**
-     * Removes empty director>ies, returns error code if contains content
-     * Equivalent to unix's `rm`
+     * Removes empty directories, returns error code if contains content
+     * Equivalent to unix's `rmdir`
      * @param filename 
      * @returns FSResult
      */
@@ -217,7 +232,7 @@ class FileSystemNode {
     }
 
     /**
-     * Removes directory / file recursively. Equivalent to unix's `rm -rf`
+     * Removes directory / file recursively. Equivalent to unix's `rm -r`
      * @param filename 
      * @returns FSResult
      */
