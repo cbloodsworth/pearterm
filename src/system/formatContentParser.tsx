@@ -19,9 +19,9 @@ export interface FormattedColor {
 }
 
 const fontMap: {[key: string]: Font} = {
-    'default': { fontFamily: 'Consolas' },
-    '0': { fontFamily: 'Consolas' },
-    '1': { fontFamily: 'Arial' }
+    'default': { fontFamily: 'monospace' },
+    '0': { fontFamily: 'monospace' },
+    '1': { fontFamily: 'serif' }
 }
 
 // I really don't know if this is the best way to do it...I wish I was better with TS
