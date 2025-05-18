@@ -19,8 +19,8 @@ export interface FormattedColor {
 }
 
 const fontMap: {[key: string]: Font} = {
-    'default': { fontFamily: 'JetBrainsMono' },
-    '0': { fontFamily: 'JetBrainsMono' },
+    'default': { fontFamily: 'Consolas' },
+    '0': { fontFamily: 'Consolas' },
     '1': { fontFamily: 'Arial' }
 }
 

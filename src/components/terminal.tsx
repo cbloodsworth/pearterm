@@ -82,8 +82,8 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
     const [input, setInput] = useState("");
 
     // The useEffect ensures the input box in the terminal is always focused.
-    const inputBoxRef = useRef();
-    useEffect(() => { inputBoxRef.current.focus(); }, []);
+    const inputBoxRef = useRef<HTMLInputElement>(null);
+    useEffect(() => { inputBoxRef.current && inputBoxRef.current.focus(); }, []);
 
     // Storing previously entered commands and their results.
     const [history, modifyHistory] = useState<TerminalHistoryEntry[]>([]);
@@ -130,7 +130,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
         modifyDisplayHistory([...displayHistory, ...addition].slice(cutoff));
     }
 
-    const handleKeyDown = (event) => {
+    const handleKeyDown = (event: { key: any; ctrlKey: any; preventDefault: () => void; }) => {
         switch (event.key) {
             case "Enter": {
                 historyIndex.current = -1;
@@ -242,7 +242,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
     const handleClick = () => {
         const selection = window.getSelection();
         if (!selection?.toString()) {
-            inputBoxRef.current.focus();
+            inputBoxRef.current && inputBoxRef.current.focus();
         }
     }
 

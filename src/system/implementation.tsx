@@ -1,7 +1,6 @@
 import { TerminalColors, TerminalEnvironment } from "../components/terminal.tsx";
-import { Command, CommandName, CommandTemplate, command_map } from "../system/commands"
+import { Command, CommandName, command_map } from "../system/commands"
 import FileSystemNode from "../system/filetree.tsx"
-import { ansiToColor, htmlToColor } from "./formatContentParser.tsx";
 
 import { themes } from "../../data/themes.ts"
 import { CONSTANTS } from "../../data/constants.ts";
@@ -39,7 +38,7 @@ export const evaluateCommand = (command: Command,
                                 setPwd: (dir: FileSystemNode) => void, 
                                 currentEnvironment: TerminalEnvironment,
                                 modifyEnvironment: (environment: TerminalEnvironment) => void,
-                                viewContent: string,
+                                _viewContent: string,
                                 setViewContent: (content: string) => void,
                                 termColors: TerminalColors,
                                 setTermColors: (colors: TerminalColors) => void) => {

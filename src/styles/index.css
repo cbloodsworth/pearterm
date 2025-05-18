@@ -10,7 +10,7 @@
 
   background-color: var(--bgColor);
 
-  font-family: 'JetBrainsMono';
+  font-family: 'Consolas';
   line-height: 1.5;
   font-weight: 400;
   font-size: clamp(10px, 1.25vw, 2vw);

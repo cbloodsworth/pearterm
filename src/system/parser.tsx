@@ -38,7 +38,7 @@ export class Scanner {
         this.start = this.current;
     }
 
-    lex = (): string[] | undefined => {
+    lex = (): string[] => {
         const scope: string[] = [];
         while (this.hasNext()) {
             const curr = this.getNext();
