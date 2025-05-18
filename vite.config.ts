@@ -9,5 +9,8 @@ export default defineConfig({
     strictPort: false
   },
   plugins: [react()],
-  base: '/pearterm/'
+  base: '/pearterm/',
+  build: {
+    outDir: 'dist'
+  }
 })
