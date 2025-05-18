@@ -13,6 +13,7 @@
 
     cursor: pointer;
     user-select: none;
+    font-family: var(--font-mono);
 }
 
 .tab:hover {

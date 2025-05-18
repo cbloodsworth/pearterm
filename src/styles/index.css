@@ -5,12 +5,13 @@
   --bgColor: #CCFCCB;
   --componentColor: #7ABE7E;
   --darkComponentColor: #5A9E5E;
+  --font-mono: Consolas, 'Courier New', monospace;
 
   overflow: hidden;
 
   background-color: var(--bgColor);
 
-  font-family: 'monospace';
+  font-family: var(--font-mono);
   line-height: 1.5;
   font-weight: 400;
   font-size: clamp(10px, 1.25vw, 2vw);

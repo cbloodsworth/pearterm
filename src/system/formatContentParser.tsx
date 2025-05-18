@@ -1,4 +1,5 @@
 import { colorMap } from '../../data/colors';
+import { FONT_MONO, FONT_SERIF } from '../constants';
 
 type Style = { 
     fontWeight?: 'bold' | 'lighter'; 
@@ -19,9 +20,9 @@ export interface FormattedColor {
 }
 
 const fontMap: {[key: string]: Font} = {
-    'default': { fontFamily: 'monospace' },
-    '0': { fontFamily: 'monospace' },
-    '1': { fontFamily: 'serif' }
+    'default': { fontFamily: FONT_MONO },
+    '0': { fontFamily: FONT_MONO },
+    '1': { fontFamily: FONT_SERIF }
 }
 
 // I really don't know if this is the best way to do it...I wish I was better with TS

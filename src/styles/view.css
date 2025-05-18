@@ -38,6 +38,7 @@
     width: 50vw;
     text-wrap: wrap;
     font-variant-ligatures: none;
+    font-family: var(--font-mono);
 }
 
 .window.page {
@@ -48,15 +49,18 @@
 
 .terminalInput {
     position: absolute;
-    bottom:-0.5vw;
-    right:-0.5vw;
-    font-size: 0.25px;
+    bottom: -2px;
+    right: -2px;
+    font-size: 1px;
+    color: transparent;
     border: none;
     outline: none;
-    margin: 0px;
-    padding: 0px;
-    color: red;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-family: var(--font-mono);
+    width: 2px;
+    height: 2px;
     user-select: none;
-    background-color: transparent;
-    font-family: 'monospace';
+    caret-color: transparent;
 }
