@@ -109,7 +109,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
      *  less trivial, like checking page zoom, or something.
      */
     const getMaxDisplayLines = () => {
-        return 26; 
+        return 23; 
     }
 
     /** Adds a terminal entry to the display history, while trimming if needed. */
