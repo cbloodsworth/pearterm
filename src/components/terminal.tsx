@@ -79,9 +79,9 @@ const PERRY_PROMPT = {
 const NO_OUTPUT: OutputHistoryEntry = { content: '', type: 'no-output' }
 
 const STARTER_LINES: DisplayLine[] = [
-    { content: "Welcome to \\e[3;32mpearterm\\e[1;0m! 🍐" },
+    { content: "Welcome to \\e[32mpearterm\\e[0m! 🍐" },
     { content: "Many Unix/Linux commands are supported."},
-    { content: "\\e[3;8mTry `help` for more info." },
+    { content: "Try \\e[3;36m`help`\\e[0m for more info." },
 ]
 
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, setViewContent }) => {
