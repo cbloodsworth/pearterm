@@ -25,13 +25,15 @@ const App: React.FC = () => {
   const [pwd, setPwd] = useState<FileSystemNode>(rootFS.getChildren()[0]);
   return (
     <>
-      <ThemeToggle/>
-      <TabList
-        tabLabels={tabDirs}
-        tabThumbnails={tabThumbnails}
-        pwd={pwd}
-        setPwd={setPwd}
-      />
+      <header className="appHeader">
+        <TabList
+          tabLabels={tabDirs}
+          tabThumbnails={tabThumbnails}
+          pwd={pwd}
+          setPwd={setPwd}
+        />
+        <ThemeToggle/>
+      </header>
       <View
         pwd={pwd}
         setPwd={setPwd}

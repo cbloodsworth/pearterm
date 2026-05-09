@@ -7,6 +7,8 @@
   --darkComponentColor: #5A9E5E;
   --font-mono: Consolas, 'Courier New', monospace;
 
+  font-size: 20px;
+
   overflow: hidden;
 
   background-color: var(--bgColor);
@@ -14,7 +16,6 @@
   font-family: var(--font-mono);
   line-height: 1.5;
   font-weight: 400;
-  font-size: clamp(10px, 1.25vw, 2vw);
   font-style: normal;
   font-display: swap;
   font-synthesis: none;
@@ -43,11 +44,13 @@ a:hover {
 
 body {
   margin: 0;
-  display: inline-flex;
-  place-items: center;
-  min-width: 320px;
   min-height: 100vh;
-  word-wrap: break-word;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 h1 {

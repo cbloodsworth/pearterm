@@ -30,9 +30,6 @@
 
 .tabList {
     display: flex;
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
 }
 
 .thumbnail {
@@ -46,4 +43,16 @@
 
     width: 0.75rem;
     height: 0.75rem;
+}
+
+@media (max-width: 50rem) {
+    .tabList {
+        flex: 1;
+        margin-right: 4rem;
+    }
+
+    .tab {
+        width: 100%;
+        margin-right: 0;
+    }
 }

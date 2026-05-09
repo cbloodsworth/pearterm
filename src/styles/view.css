@@ -1,56 +1,87 @@
-.view {
+.appHeader {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem 1rem 0 1rem;
+    flex-shrink: 0;
+}
+
+.themeToggle {
     position: absolute;
-    display: inline-flexbox;
-    top: 3.5rem;
-    height: 95vh;
-    width: 100vw;
+    bottom: -0.05rem;
+    right: 1.0rem;
+    font-size: 1.0rem;
+    border-radius: 0.25rem 0.25rem 0 0;
+}
+
+.view {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
 
     background-color: var(--componentColor);
 
     box-sizing: border-box;
     border-radius: 0.25rem;
+    margin: 0 1vw 1vw 1vw;
+    padding: 0.5vw;
 
     font-weight: 600;
-
     white-space: pre;
 
-    padding: 0.5vw;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .window {
-    position: absolute;
-    display: inline-block;
-    font-size: 0.80rem;
-
-    height: 80vh;
-    width: 45vw;
-
-    margin: 1vw;
+    flex: 1;
+    margin: 0.5vw;
     padding: 1vw;
 
     border-radius: 0.25rem;
-
     color: var(--fgColor);
+
+    font-size: 0.80rem;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .window.terminal {
-    left: 1vw;
-    width: 50vw;
+    flex: 50;
     text-wrap: wrap;
     font-variant-ligatures: none;
     font-family: var(--font-mono);
 }
 
 .window.page {
-    right: 1vw;
-    width: 40vw;
+    flex: 40;
     background-color: var(--darkComponentColor);
+}
+
+@media (max-width: 80rem) {
+    .window.page { display: none; }
+}
+
+@media (max-width: 50rem) {
+    .appHeader {
+        padding: 0.5rem 0.5rem 0 0.5rem;
+    }
+
+    .view {
+        margin: 0 0.5rem 0.5rem 0.5rem;
+        padding: 0.25rem;
+    }
+
+    .window {
+        margin: 0;
+        padding: 0.5rem;
+    }
 }
 
 .terminalInput {
     width: 1px;
     height: 1px;
-    font-size: 1px;
+    font-size: 16px;
     color: transparent;
     background: transparent;
     border: none;
