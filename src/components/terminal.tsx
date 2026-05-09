@@ -78,6 +78,12 @@ const PERRY_PROMPT = {
 
 const NO_OUTPUT: OutputHistoryEntry = { content: '', type: 'no-output' }
 
+const STARTER_LINES: DisplayLine[] = [
+    { content: "\\e[1;Welcome to \\e[3;32mpearterm\\e[1;0m! 🍐" },
+    { content: "Many Unix/Linux commands are supported."},
+    { content: "\\e[3;8mTry `help` for more info." },
+]
+
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, setViewContent }) => {
     // Current terminal metadata
     const [currentEnvironment, modifyEnvironment] = useState<TerminalEnvironment>({
@@ -102,7 +108,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
     const historyIndex = useRef(-1);
 
     // Storage for lines as they are displayed in the terminal.
-    const [displayHistory, modifyDisplayHistory] = useState<DisplayLine[]>([]);
+    const [displayHistory, modifyDisplayHistory] = useState<DisplayLine[]>(STARTER_LINES);
 
     // When set, the terminal is acting as a sub-REPL (e.g. perry's REPL) and
     // routes input lines to that interpreter instead of the shell.
@@ -211,6 +217,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
         }
 
         // No args: enter REPL mode.
+        perry.preload();
         appendDisplayLines(splitOutputLines("Perry REPL.\nType 'exit' to leave."));
         setPerryPrompt(PERRY_PROMPT.NEUTRAL);
         setSubRepl('perry');

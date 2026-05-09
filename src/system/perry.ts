@@ -20,6 +20,10 @@ async function loadPerry(): Promise<PerryModule> {
     return modulePromise;
 }
 
+export function preload(): void {
+    void loadPerry();
+}
+
 export async function evalExpr(input: string): Promise<{ ok: true; value: string } | { ok: false; error: string }> {
     try {
         const mod = await loadPerry();
