@@ -48,19 +48,16 @@
 }
 
 .terminalInput {
-    position: absolute;
-    bottom: -2px;
-    right: -2px;
+    width: 1px;
+    height: 1px;
     font-size: 1px;
     color: transparent;
+    background: transparent;
     border: none;
     outline: none;
     margin: 0;
     padding: 0;
-    background: transparent;
     font-family: var(--font-mono);
-    width: 2px;
-    height: 2px;
     user-select: none;
     caret-color: transparent;
 }
