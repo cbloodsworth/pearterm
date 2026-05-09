@@ -8,8 +8,9 @@ import TerminalContent from './terminalContent.tsx';
 // System utilities
 import FileSystemNode from '../system/filetree';
 import { Validator, Tokenizer } from "../system/parser"
-import { Command } from "../system/commands"
+import { Command, CommandName } from "../system/commands"
 import { evaluateCommand } from '../system/implementation';
+import * as perry from '../system/perry';
 import { FormattedColor, ansiToColor } from '../system/formatContentParser.tsx';
 
 // Data imports
@@ -66,7 +67,16 @@ interface TerminalHistoryEntry {
 interface DisplayLine {
     content: string;
     environment?: TerminalEnvironment;
+    customPrompt?: string;
 }
+
+const PERRY_PROMPT = {
+    NEUTRAL: "('ω') ?> ",
+    SUCCESS: "(^▽^) ♪> ",
+    FAILURE: "(‵□′) #> ",
+};
+
+const NO_OUTPUT: OutputHistoryEntry = { content: '', type: 'no-output' }
 
 const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, setViewContent }) => {
     // Current terminal metadata
@@ -86,7 +96,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
     useEffect(() => { inputBoxRef.current && inputBoxRef.current.focus(); }, []);
 
     // Storing previously entered commands and their results.
-    const [history, modifyHistory] = useState<TerminalHistoryEntry[]>([]);
+    const [history, modifyHistory] = useState<string[][]>([[]]);
 
     // For up and down arrow key functionality (fetching previously entered commands)
     const historyIndex = useRef(-1);
@@ -94,10 +104,27 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
     // Storage for lines as they are displayed in the terminal.
     const [displayHistory, modifyDisplayHistory] = useState<DisplayLine[]>([]);
 
+    // When set, the terminal is acting as a sub-REPL (e.g. perry's REPL) and
+    // routes input lines to that interpreter instead of the shell.
+    const [subRepl, setSubRepl] = useState<'perry' | null>(null);
+    const [perryPrompt, setPerryPrompt] = useState<string>(PERRY_PROMPT.NEUTRAL);
+
     // Clears the terminal from buildup of command history.
-    // // TODO: This has the unintended side-effect of also clearing up and down arrow history
     const clearTerminal = () => { 
         modifyDisplayHistory([]); 
+    }
+
+    const addHistoryLine =
+    (rawInput: string) => {
+        modifyHistory(prev => [[...prev[0], rawInput], ...prev.slice(1)])
+    }
+
+    const pushHistoryStack = () => {
+        modifyHistory([[], ...history])
+    }
+
+    const popHistoryStack = () => {
+        modifyHistory([...history.slice(1)])
     }
 
     /**
@@ -112,6 +139,17 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
         return 23; 
     }
 
+    /** Append display lines, trimming the buffer if needed. Uses functional
+     *  setter so async callers see a fresh history each time. */
+    const appendDisplayLines = (lines: DisplayLine[]) => {
+        const max = getMaxDisplayLines();
+        modifyDisplayHistory((prev) => {
+            const next = [...prev, ...lines];
+            const cutoff = Math.max(0, next.length - max);
+            return next.slice(cutoff);
+        });
+    }
+
     /** Adds a terminal entry to the display history, while trimming if needed. */
     const addToDisplayHistory = (entry: TerminalHistoryEntry) => {
         const addition: DisplayLine[] = [];
@@ -124,27 +162,101 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
         );
         addition.push(...outputLines);
 
-        // Trim cutoff. Prevents the terminal from overflowing.
-        const cutoff = Math.max(0, displayHistory.length + addition.length - getMaxDisplayLines());
+        appendDisplayLines(addition);
+    }
 
-        modifyDisplayHistory([...displayHistory, ...addition].slice(cutoff));
+    /** Splits a result string into output DisplayLines, dropping empty lines. */
+    const splitOutputLines = (output: string): DisplayLine[] =>
+        output.split('\n').filter((c) => c !== '').map((content) => ({ content }));
+
+    /** Run a single line of input through perry's REPL and append the result. */
+    const runPerryLine = async (line: string, prompt: string) => {
+        appendDisplayLines([{ content: line, customPrompt: prompt }]);
+        addHistoryLine(line);
+        const result = await perry.evalExpr(line);
+        if (result.ok) {
+            appendDisplayLines(splitOutputLines(result.value));
+            setPerryPrompt(PERRY_PROMPT.SUCCESS);
+        } else {
+            // Use the same bright-red ANSI as perry's native REPL.
+            const errLines = splitOutputLines(`\\e[1;31m❌ ${result.error}\\e[0;0m`);
+            appendDisplayLines(errLines);
+            setPerryPrompt(PERRY_PROMPT.FAILURE);
+        }
+    }
+
+    /** Handle the `perry` shell command: -e expression, FILE, or enter REPL. */
+    const handlePerryCommand = async (command: Command, rawInput: string, env: TerminalEnvironment) => {
+        appendDisplayLines([{ content: rawInput, environment: env }]);
+
+        if (command.flags.has('e')) {
+            if (command.parameters.length !== 1) {
+                appendDisplayLines(splitOutputLines("Error: perry -e requires an expression"));
+                return;
+            }
+            const result = await perry.evalExpr(command.parameters[0]);
+            appendDisplayLines(splitOutputLines(result.ok ? result.value : `Error: perry: ${result.error}`));
+            return;
+        }
+
+        // Read in the file and execute it.
+        if (command.parameters.length === 1) {
+            const filename = command.parameters[0];
+            const file = pwd.getFileSystemNode(filename);
+            if (file === null) { appendDisplayLines(splitOutputLines(`Error: perry: ${filename}: No such file or directory`)); return; }
+            if (file.isDirectory) { appendDisplayLines(splitOutputLines(`Error: perry: ${filename} is not a file`)); return; }
+            const result = await perry.runFile(file.contents || '');
+            appendDisplayLines(splitOutputLines(result.ok ? result.value : `Error: perry: ${result.error}`));
+            return;
+        }
+
+        // No args: enter REPL mode.
+        appendDisplayLines(splitOutputLines("Perry REPL.\nType 'exit' to leave."));
+        setPerryPrompt(PERRY_PROMPT.NEUTRAL);
+        setSubRepl('perry');
+        pushHistoryStack();
     }
 
     const handleKeyDown = (event: { key: any; ctrlKey: any; preventDefault: () => void; }) => {
         switch (event.key) {
             case "Enter": {
                 historyIndex.current = -1;
+                const submitted = input;
+                setInput("");
+
+                // Sub-REPL mode: input goes to perry until the user types `exit`.
+                if (subRepl === 'perry') {
+                    if (submitted === 'exit') {
+                        appendDisplayLines([{ content: submitted, customPrompt: perryPrompt }]);
+                        appendDisplayLines(splitOutputLines("Goodbye."));
+                        setSubRepl(null);
+                        popHistoryStack();
+                    } else if (submitted.length === 0) {
+                        appendDisplayLines([{ content: '', customPrompt: perryPrompt }]);
+                    } else {
+                        const promptForLine = perryPrompt;
+                        runPerryLine(submitted, promptForLine);
+                    }
+                    break;
+                }
 
                 // Parse!
-                const command = new Validator(new Tokenizer(input).tokenize()).parse();
+                const command = new Validator(new Tokenizer(submitted).tokenize()).parse();
+
+                // perry command: handled async outside the synchronous evaluateCommand path.
+                if (command.name === CommandName.perry) {
+                    addHistoryLine(submitted);
+                    handlePerryCommand(command, submitted, {...currentEnvironment});
+                    break;
+                }
 
                 // If input is empty, result is empty string.
                 // Otherwise, evaluate the command!
-                const result = (input.length === 0)
+                const result = (submitted.length === 0)
                     ? ""
                     : evaluateCommand(
-                        command, pwd, setPwd, 
-                        currentEnvironment, modifyEnvironment, 
+                        command, pwd, setPwd,
+                        currentEnvironment, modifyEnvironment,
                         viewContent, setViewContent,
                         termColors, setTermColors);
 
@@ -152,8 +264,8 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                 const commandHistoryEntry: CommandHistoryEntry = 
                     { command: command, rawInput: input, environment: {...currentEnvironment} };
 
-                const outputHistoryEntry: OutputHistoryEntry = 
-                    { content: result, type: input.length === 0 ? 'no-output' : 'command-output' };
+                const outputHistoryEntry: OutputHistoryEntry =
+                    { content: result, type: submitted.length === 0 ? 'no-output' : 'command-output' };
 
                 // If we're redirecting, write the result to a file
                 //   and do some modification to the outputHistory object
@@ -164,26 +276,21 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                         outputHistoryEntry.type = 'error';
                     }
                     else {
-                        // If redirecting, don't output result to terminal: just write it to file
-                        outputHistoryEntry.content = "";
-                        outputHistoryEntry.type = 'no-output';
+                        // If redirecting, don't output result to terminal; just write it to file
+                        Object.assign(outputHistoryEntry, NO_OUTPUT)
                     }
                 }
 
-                const terminalHistoryEntry = { inputCommand: commandHistoryEntry, outputResult: outputHistoryEntry };
-
                 // Add the newest command to the history
-                modifyHistory([
-                    ...history,
-                    terminalHistoryEntry
-                ]);
-
-                addToDisplayHistory(terminalHistoryEntry);
+                if (submitted.length > 0) addHistoryLine(submitted);
+                addToDisplayHistory({
+                    inputCommand: commandHistoryEntry,
+                    outputResult: outputHistoryEntry
+                });
 
                 // If the result contains the RESET_TERM escape sequence, clear the terminal.
                 if (result.includes(CONSTANTS.ESCAPE_CODES.RESET_TERM)) { clearTerminal(); }
 
-                setInput("");
                 break;
             }
 
@@ -212,9 +319,11 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
             // Set input to previous command entered
             case "ArrowUp": {
                 event.preventDefault();
-                if (historyIndex.current < history.length - 1) {
+                if (historyIndex.current < history[0].length - 1) {
                     historyIndex.current++;
-                    setInput(history[history.length - 1 - historyIndex.current].inputCommand.rawInput);
+                    setInput(
+                        history[0][history[0].length - 1 - historyIndex.current]
+                    );
                 }
                 break;
             }
@@ -224,12 +333,13 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                 event.preventDefault();
                 if (historyIndex.current > 0) {
                     historyIndex.current--;
-                    setInput(history[history.length - 1 - historyIndex.current].inputCommand.rawInput || "");
+                    setInput(history[0][history[0].length - 1 - historyIndex.current] || "");
                 }
 
                 // No more commands in history
                 else if (historyIndex.current === 0) {
                     setInput("");
+                    historyIndex.current = -1;
                 }
                 break;
             }
@@ -259,16 +369,25 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
              }}
             onClick={handleClick}
         >
-            {displayHistory.map((displayLine) => (
-                <>
-                    {displayLine.environment ? <Prompt environment={displayLine.environment} colors={termColors}/> : <></> }
-                    <TerminalContent content={displayLine.content} formatted={!displayLine.environment}/>
-                    <div></div>
-                </>
-            ))}
+            {displayHistory.map((displayLine) => {
+                const isInputLine = !!displayLine.environment || !!displayLine.customPrompt;
+                return (
+                    <>
+                        {displayLine.environment
+                            ? <Prompt environment={displayLine.environment} colors={termColors}/>
+                            : displayLine.customPrompt
+                                ? <TerminalContent content={displayLine.customPrompt} formatted={false}/>
+                                : <></>}
+                        <TerminalContent content={displayLine.content} formatted={!isInputLine}/>
+                        <div></div>
+                    </>
+                );
+            })}
 
             {/* Current user prompt. */}
-            <Prompt environment={currentEnvironment} colors={termColors}/>
+            {subRepl === 'perry'
+                ? <TerminalContent content={perryPrompt} formatted={false}/>
+                : <Prompt environment={currentEnvironment} colors={termColors}/>}
             <TerminalContent content={input} formatted={false}/>
             <input
                 type='text'

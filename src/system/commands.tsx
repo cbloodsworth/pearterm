@@ -15,7 +15,8 @@ export enum CommandName {
     view = 'view',
     help = 'help',
     reset = 'reset',
-    debug = 'debug'
+    debug = 'debug',
+    perry = 'perry'
 }
 
 
@@ -89,7 +90,7 @@ const CMD_RMDIR: CommandTemplate = { name: CommandName.rmdir, allowed_flags: ["r
             description: "Remove the DIRECTORY, if it is empty." }}
 const CMD_EXIT: CommandTemplate = { name: CommandName.exit, allowed_flags: [], params_expected: [0],
     info: { usage: "exit",
-            description: "Exit the shell. Doesn't actually work right now." }}
+            description: "Exit the shell. (Browser tab.)" }}
 const CMD_ECHO: CommandTemplate = { name: CommandName.echo, allowed_flags: [], params_expected: [],
     info: { usage: "echo [STRING]...",
             description: "Display a line of text" }}
@@ -113,6 +114,12 @@ const CMD_DEBUG: CommandTemplate = { name: CommandName.debug, allowed_flags: [],
     info: { usage: "debug",
             description: "Test some kind of variable functionality.\n"+
                          "For developer use only." }}
+const CMD_PERRY: CommandTemplate = { name: CommandName.perry, allowed_flags: ["e"], params_expected: [0,1],
+    info: { usage: "perry [-e EXPR | FILE]",
+            description: "Run the perry interpreter.\n"+
+                         "With no arguments, enters an interactive REPL.\n"+
+                         "\t-e EXPR\tevaluate a single expression and exit\n"+
+                         "\tFILE\trun the contents of FILE as a perry program" }}
 
 export const command_map = new Map([
     ["".concat(CommandName.ls), CMD_LS],
@@ -131,4 +138,5 @@ export const command_map = new Map([
     ["".concat(CommandName.help), CMD_HELP],
     ["".concat(CommandName.reset), CMD_RESET],
     ["".concat(CommandName.debug), CMD_DEBUG],
+    ["".concat(CommandName.perry), CMD_PERRY],
 ]);
