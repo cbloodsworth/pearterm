@@ -1,4 +1,5 @@
 import { colorMap } from '../../data/colors';
+import { TerminalColors } from '../components/terminal';
 import { FONT_MONO, FONT_SERIF } from '../constants';
 
 type Style = { 
@@ -148,7 +149,7 @@ const stringDecToHex = (decimal: string): string | null => {
  * @param content Raw content that may contain ANSI escape codes (i.e. \e[<0..255>;<0..255>..<0..255>m)
  * @returns An array of JSX spans with the proper color, styling, etc.
  */
-export const parseANSICodeStyles = (content: string): JSX.Element[] => {
+export const parseANSICodeStyles = (content: string, colors: TerminalColors): JSX.Element[] => {
     let color = colorMap.default;
     let style = styleMap.default;
     let font = fontMap.default;
@@ -198,8 +199,14 @@ export const parseANSICodeStyles = (content: string): JSX.Element[] => {
                 case 19: { font = fontMap[code % 10]; break;}
                 //// Set foreground color
                 // Basic cases
-                case 30: case 31: case 32: case 33:
-                case 34: case 35: case 36: case 37: { color = colorMap[code % 10]; break;}
+                case 30: { color = {"color": colors.background.htmlCode }; break; }
+                case 31: { color = {"color": colors.error.htmlCode }; break; }
+                case 32: { color = {"color": colors.success.htmlCode }; break; }
+                case 33: { color = {"color": colors.warning.htmlCode }; break; }
+                case 34: { color = {"color": colors.primary.htmlCode }; break; }
+                case 35: { color = {"color": colors.info.htmlCode }; break; }
+                case 36: { color = {"color": colors.mute.htmlCode }; break; }
+                case 37: { color = {"color": colors.default.htmlCode }; break; }
                 // Next arguments must be 5;n or 2;r;g;b
                 case 38: {
                     // Checks if there are enough arguments ahead (2, at minimum)

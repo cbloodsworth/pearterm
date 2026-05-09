@@ -1,14 +1,19 @@
 import React from 'react';
 import FormattedContent from './formattedContent';
 import { FONT_MONO } from '../constants';
+import { TerminalColors } from './terminal';
 
 interface ContentProps {
     content: string;
-    formatted: boolean;
+    colors?: TerminalColors;
 }
 
-const TerminalContent: React.FC<ContentProps> = ({content, formatted}) => {
-    return (formatted ? <FormattedContent content={content}/> : <span style={{ fontFamily: FONT_MONO }}>{content}</span>);
+const TerminalContent: React.FC<ContentProps> = ({content, colors}) => {
+    return (
+        colors
+            ? <FormattedContent colors={colors} content={content}/>
+            : <span style={{ fontFamily: FONT_MONO }}>
+        {content}</span>);
 };
 
 export default TerminalContent;

@@ -79,7 +79,7 @@ const PERRY_PROMPT = {
 const NO_OUTPUT: OutputHistoryEntry = { content: '', type: 'no-output' }
 
 const STARTER_LINES: DisplayLine[] = [
-    { content: "\\e[1;Welcome to \\e[3;32mpearterm\\e[1;0m! 🍐" },
+    { content: "Welcome to \\e[3;32mpearterm\\e[1;0m! 🍐" },
     { content: "Many Unix/Linux commands are supported."},
     { content: "\\e[3;8mTry `help` for more info." },
 ]
@@ -94,8 +94,9 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
 
     const [termColors, setTermColors] = useState<TerminalColors>(themes[CONSTANTS.DEFAULT_THEME]);
 
-    // For storing what the user is actively typing. 
+    // For storing what the user is actively typing.
     const [input, setInput] = useState("");
+    const [cursorPos, setCursorPos] = useState(0);
 
     // The useEffect ensures the input box in the terminal is always focused.
     const inputBoxRef = useRef<HTMLInputElement>(null);
@@ -230,6 +231,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                 historyIndex.current = -1;
                 const submitted = input;
                 setInput("");
+                setCursorPos(0);
 
                 // Sub-REPL mode: input goes to perry until the user types `exit`.
                 if (subRepl === 'perry') {
@@ -317,20 +319,14 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                 break;
             }
 
-            case "ArrowLeft":
-            case "ArrowRight": {
-                event.preventDefault();
-                break;
-            }
-
             // Set input to previous command entered
             case "ArrowUp": {
                 event.preventDefault();
                 if (historyIndex.current < history[0].length - 1) {
                     historyIndex.current++;
-                    setInput(
-                        history[0][history[0].length - 1 - historyIndex.current]
-                    );
+                    const recalled = history[0][history[0].length - 1 - historyIndex.current];
+                    setInput(recalled);
+                    setCursorPos(recalled.length);
                 }
                 break;
             }
@@ -340,12 +336,15 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                 event.preventDefault();
                 if (historyIndex.current > 0) {
                     historyIndex.current--;
-                    setInput(history[0][history[0].length - 1 - historyIndex.current] || "");
+                    const recalled = history[0][history[0].length - 1 - historyIndex.current] || "";
+                    setInput(recalled);
+                    setCursorPos(recalled.length);
                 }
 
                 // No more commands in history
                 else if (historyIndex.current === 0) {
                     setInput("");
+                    setCursorPos(0);
                     historyIndex.current = -1;
                 }
                 break;
@@ -365,6 +364,11 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setInput(event.target.value);
+        setCursorPos(event.target.selectionStart ?? event.target.value.length);
+    }
+
+    const handleSelect = (event: React.SyntheticEvent<HTMLInputElement>) => {
+        setCursorPos(event.currentTarget.selectionStart ?? 0);
     }
 
     return (
@@ -377,15 +381,17 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
             onClick={handleClick}
         >
             {displayHistory.map((displayLine) => {
-                const isInputLine = !!displayLine.environment || !!displayLine.customPrompt;
+                const colors = (!!displayLine.environment || !!displayLine.customPrompt)
+                    ? undefined
+                    : termColors;
                 return (
                     <>
                         {displayLine.environment
                             ? <Prompt environment={displayLine.environment} colors={termColors}/>
                             : displayLine.customPrompt
-                                ? <TerminalContent content={displayLine.customPrompt} formatted={false}/>
+                                ? <TerminalContent content={displayLine.customPrompt}/>
                                 : <></>}
-                        <TerminalContent content={displayLine.content} formatted={!isInputLine}/>
+                        <TerminalContent colors={colors} content={displayLine.content} />
                         <div></div>
                     </>
                 );
@@ -393,9 +399,11 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
 
             {/* Current user prompt. */}
             {subRepl === 'perry'
-                ? <TerminalContent content={perryPrompt} formatted={false}/>
+                ? <TerminalContent content={perryPrompt}/>
                 : <Prompt environment={currentEnvironment} colors={termColors}/>}
-            <TerminalContent content={input} formatted={false}/>
+            <TerminalContent content={input.slice(0, cursorPos)}/>
+            <BlinkingCursor/>
+            <TerminalContent content={input.slice(cursorPos)}/>
             <input
                 type='text'
                 value={input}
@@ -403,10 +411,10 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
                 ref={inputBoxRef}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
+                onSelect={handleSelect}
                 spellCheck={false}
                 className='terminalInput'
             />
-            <BlinkingCursor/>
         </div >
     );
 };
