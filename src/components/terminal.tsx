@@ -102,6 +102,38 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
     const inputBoxRef = useRef<HTMLInputElement>(null);
     useEffect(() => { inputBoxRef.current && inputBoxRef.current.focus(); }, []);
 
+    // Maximum lines that fit in the visible terminal panel. Re-measured on
+    // resize / zoom so the active prompt is never clipped off the bottom.
+    const terminalRef = useRef<HTMLDivElement>(null);
+    const [maxLines, setMaxLines] = useState(23);
+
+    useEffect(() => {
+        const el = terminalRef.current;
+        if (!el) return;
+        const compute = () => {
+            const styles = getComputedStyle(el);
+            let lineHeight = parseFloat(styles.lineHeight);
+            if (isNaN(lineHeight)) lineHeight = parseFloat(styles.fontSize) * 1.5;
+            const padTop = parseFloat(styles.paddingTop) || 0;
+            const padBottom = parseFloat(styles.paddingBottom) || 0;
+            const inner = el.clientHeight - padTop - padBottom;
+            // Reserve one line for the active prompt.
+            setMaxLines(Math.max(1, Math.floor(inner / lineHeight) - 1));
+        };
+        compute();
+        const observer = new ResizeObserver(compute);
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+
+    // If the cap shrinks (e.g. zoom-in), drop the oldest history entries so the
+    // active prompt stays visible.
+    useEffect(() => {
+        modifyDisplayHistory(prev =>
+            prev.length > maxLines ? prev.slice(prev.length - maxLines) : prev
+        );
+    }, [maxLines]);
+
     // Storing previously entered commands and their results.
     const [history, modifyHistory] = useState<string[][]>([[]]);
 
@@ -134,17 +166,7 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
         modifyHistory([...history.slice(1)])
     }
 
-    /**
-     * Returns the maximum number of lines that can be shown at once in the terminal.
-     *  This will likely remain at the constant 23, as I don't expect to change
-     *  the terminal's font size.
-     *
-     * In the case that the font size changes, this function can do something
-     *  less trivial, like checking page zoom, or something.
-     */
-    const getMaxDisplayLines = () => {
-        return 23; 
-    }
+    const getMaxDisplayLines = () => maxLines;
 
     /** Append display lines, trimming the buffer if needed. Uses functional
      *  setter so async callers see a fresh history each time. */
@@ -372,7 +394,8 @@ const Terminal: React.FC<TerminalProps> = ({ user, pwd, setPwd, viewContent, set
     }
 
     return (
-        <div className='window terminal' 
+        <div className='window terminal'
+             ref={terminalRef}
              style={{
                 background: termColors.background.htmlCode,
                 color: termColors.default.htmlCode,
