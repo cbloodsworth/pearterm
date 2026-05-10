@@ -5,7 +5,7 @@
   --bgColor: #CCFCCB;
   --componentColor: #7ABE7E;
   --darkComponentColor: #5A9E5E;
-  --font-mono: Consolas, 'Courier New', monospace;
+  --font-mono: 'JetBrainsMono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace;
 
   font-size: 20px;
 
